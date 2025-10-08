@@ -1,0 +1,19 @@
+{
+  "name": "swift-prints",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --parallel --recursive dev",
+    "dev:frontend": "pnpm --filter @swift-prints/frontend dev",
+    "dev:backend": "pnpm --filter @swift-prints/backend dev",
+    "build": "pnpm --recursive build",
+    "build:frontend": "pnpm --filter @swift-prints/frontend build",
+    "build:backend": "pnpm --filter @swift-prints/backend build",
+    "lint": "pnpm --recursive lint",
+    "type-check": "pnpm --recursive type-check"
+  },
+  "devDependencies": {
+    "pnpm": "^8.15.0"
+  }
+}
