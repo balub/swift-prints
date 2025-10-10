@@ -133,36 +133,116 @@ Total = Material + Labor + Premium
 - [x] Advanced print options (collapsible for beginners)
 - [x] Maker browser with filtering
 
-### Desktop Print Studio - COMPLETED! 🎉
+### Print Studio - COMPLETED! 🎉🔥
 Route: `/studio`
 
-**Features Implemented:**
-- **Left Panel (40%)**:
-  - Drag-and-drop STL upload with visual feedback
-  - Material selector grid (PLA, PETG, ABS, TPU, Carbon Fiber, Wood Fill)
-  - Color picker showing available inventory from all makers
-  - Advanced options (collapsible): Layer height, infill %, infill pattern, supports, bed adhesion, vase mode
-  - Tabbed interface: "Browse Makers" vs "Post for Bids"
-  - Maker cards with ratings, location, verification badges
+**Desktop & Mobile Fully Implemented!**
 
-- **Right Panel (60%)**:
-  - Full-height STL 3D viewer (reusing Balu's existing STLViewer component)
+#### Core Features (Both Desktop & Mobile):
+
+**1. File Upload**
+- Drag-and-drop STL file upload with visual feedback
+- Download demo STL file option (demo-cube.stl in public/)
+- File validation and size display
+
+**2. Vase Mode Toggle** (appears FIRST to prevent data loss)
+- Single-wall hollow print option
+- Auto-disables conflicting advanced options when enabled
+- Clear tooltips explaining functionality
+
+**3. Material & Color Selection**
+- Combined material+color grid (unified selection)
+- Shows ALL available combinations from maker inventory
+- Displays "from ₹X.XX/g" showing lowest available price
+- Indicates number of makers who have each combo in stock
+- Real-time filtering by in-stock status
+
+**4. Maker Selection** ✨ NEW!
+- Smart recommendation system (highest rated + verified makers shown first)
+- "Recommended" badge on top choice
+- Detailed maker cards showing:
+  - Name with verification badge
+  - Star rating and total successful prints
+  - Location
+  - Exact pricing: ₹X.XX/g and ₹X/hr
+- Click to select any maker
+- Desktop: Expandable cards list
+- Mobile: Slide-up sheet with scrollable maker list
+
+**5. Advanced Print Options** (collapsible, hidden if vase mode active)
+- Layer Height: 0.1mm - 0.3mm dropdown
+- Infill Density: 10% - 100% slider
+- Infill Pattern: Grid, Honeycomb, Gyroid, Triangular
+- Generate Supports: Yes/No toggle
+- Bed Adhesion: None, Skirt, Brim, Raft
+- Native HTML tooltips on all settings for grandmother-friendly UX
+
+**6. Live Cost Estimation**
+- Real-time calculation based on:
+  - Material cost (filament grams × price per gram)
+  - Labor cost (print time hours × hourly rate)
+  - Complexity premium (supports + high infill)
+- Detailed breakdown showing all cost components
+- Maker details card with:
+  - Maker name, verification, rating, location
+  - Total successful prints
+  - Exact rates used in calculation
+- Total price prominently displayed
+
+**7. Checkout**
+- "Proceed to Checkout" button (ready for QR code implementation)
+
+#### Desktop Layout (lg: breakpoint and up):
+- **No top navbar** (full immersive experience)
+- **Split-panel layout**: 40% controls (left) / 60% 3D viewer (right)
+- **Left Panel**:
+  - Sticky header with branding
+  - Scrollable controls area
+  - Sequential flow: Upload → Vase Mode → Material+Color → Maker Selection → Advanced Options → Cost Estimate
+- **Right Panel**:
+  - Full-height STL 3D viewer with Three.js
   - Empty state with helpful messaging
 
-- **Design System**:
-  - Absurd Industries colors (beige/orange accent)
-  - Jura font family
-  - Font Awesome icons
-  - Smooth transitions and hover effects
-  - Sticky headers with backdrop blur
+#### Mobile Layout (< lg breakpoint):
+- **No top navbar** (full screen app-like experience)
+- **Sticky header** with compact branding
+- **Progressive disclosure via slide-up sheets**:
+  - Material & Color Sheet: Full grid of all combinations
+  - Maker Selection Sheet: Scrollable list with recommendations
+  - Advanced Settings Sheet: All print options with descriptions
+- **Inline elements**:
+  - Upload card
+  - 3D preview card (embedded, 256px height)
+  - Vase mode toggle
+  - Cost estimate with maker details
 
-**Phase 3: Mobile Experience**
-- [ ] Upload screen (entry point)
-- [ ] Material overlay (slide-up sheet)
-- [ ] Color picker overlay
-- [ ] Advanced options accordion
-- [ ] Maker list overlay
-- [ ] Quote/checkout overlay with QR code
+#### Design System Applied:
+- **Colors**: Absurd Industries beige (#ece0cf) background, orange (#ff4500) accent
+- **Typography**: Jura font family throughout
+- **Icons**: Font Awesome kit
+- **Animations**: Smooth transitions, hover effects, scale on selection
+- **Components**: shadcn/ui (Button, Card, Badge, Select, Slider, Switch, Sheet, Label)
+- **Accessibility**: Native tooltips, semantic HTML, keyboard navigation support
+
+#### Technical Implementation:
+- Mock JSON data (makers.json, materials.json) - ready for API replacement
+- Smart data structures: Material+color combos grouped with all available makers
+- Recommendation algorithm: Sorts by verified status → rating → total prints
+- Auto-reset maker selection when material+color changes
+- Vase mode logic: useEffect clears conflicting options
+- Responsive: Mobile-first with lg: breakpoint for desktop
+
+**Phase 3: Mobile Experience** ✅
+- [x] Upload screen (entry point)
+- [x] Material overlay (slide-up sheet)
+- [x] Color picker overlay (combined with material)
+- [x] Maker selection overlay with recommendations
+- [x] Advanced options accordion (slide-up sheet)
+- [x] Cost estimate with maker details
+
+---
+
+## Next Steps (Future Implementation)
 
 **Phase 4: Maker Dashboard**
 - [ ] Inventory management UI
@@ -175,10 +255,40 @@ Route: `/studio`
 - [ ] View bids from makers
 - [ ] Accept bid → checkout with QR code
 
+**Phase 6: Checkout & Payment**
+- [ ] QR code generation for direct maker payment
+- [ ] Order confirmation screen
+- [ ] Order tracking
+
 ---
 
-## Notes
-- Keep it CRISP AF
-- Mobile overlays should feel native/app-like
-- Desktop split view should be clean and functional
-- Use Absurd design system religiously (colors, spacing, animations)
+## Development Notes
+- **Design Philosophy**: Keep it CRISP AF ✨
+- **Mobile UX**: Overlays feel native/app-like with smooth animations
+- **Desktop UX**: Clean split-view, distraction-free immersive experience
+- **Code Quality**: Ready for API integration - just swap JSON imports with fetch calls
+- **Accessibility**: Grandmother-friendly with tooltips everywhere
+- **Performance**: Native tooltips > Radix tooltips (no nested button issues!)
+
+**File Structure:**
+```
+apps/frontend/
+├── src/
+│   ├── pages/PrintStudio.tsx (1100+ lines - COMPLETE desktop + mobile)
+│   ├── components/
+│   │   ├── Navbar.tsx (hides on /studio route)
+│   │   └── STLViewer.tsx (Three.js renderer)
+│   └── data/
+│       ├── makers.json (4 makers with full details)
+│       └── materials.json (6 material types)
+└── public/
+    └── demo-cube.stl (ASCII STL format, 1mm cube)
+```
+
+**Design System Compliance:**
+- ✅ Jura font throughout
+- ✅ #ece0cf beige background
+- ✅ #ff4500 orange accent/primary
+- ✅ Font Awesome icons
+- ✅ Smooth transitions and animations
+- ✅ Mobile-first responsive
