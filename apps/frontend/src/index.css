@@ -2,58 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-/* PrintLocal Design System - Atopile-inspired minimal aesthetic */
+/* Absurd Industries Design System - Saucy & Clean AF */
 
 @layer base {
   :root {
-    /* Core colors */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 6.7%;
+    /* Core backgrounds - Absurd beige palette */
+    --bg-primary: 36 26% 92%;      /* #ece0cf */
+    --bg-secondary: 0 0% 100%;     /* #ffffff */
+    --bg-tertiary: 36 23% 88%;     /* #e0d4c3 */
+
+    --background: var(--bg-primary);
+    --foreground: 0 0% 10%;        /* #1a1a1a */
 
     /* Text hierarchy */
-    --text-primary: 0 0% 6.7%;
-    --text-secondary: 0 0% 33.3%;
-    --text-muted: 0 0% 45.1%;
+    --text-primary: 0 0% 10%;      /* #1a1a1a */
+    --text-secondary: 0 0% 36%;    /* #5c5c5c */
+    --text-muted: 0 0% 45%;
 
-    /* Brand colors */
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 0 0% 98%;
-    --primary-hover: 221.2 83.2% 45.3%;
+    /* Absurd Orange Accent - THE STAR */
+    --primary: 16 100% 50%;        /* #ff4500 - Absurd Orange */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 16 100% 45%;
 
     /* Neutral palette */
-    --neutral-50: 0 0% 98%;
-    --neutral-100: 0 0% 96.1%;
-    --neutral-200: 0 0% 89.8%;
-    --neutral-300: 0 0% 83.1%;
-    --neutral-800: 0 0% 15.3%;
-    --neutral-900: 0 0% 9%;
+    --neutral-50: 36 26% 95%;
+    --neutral-100: 36 23% 90%;
+    --neutral-200: 36 20% 85%;
+    --neutral-300: 36 18% 75%;
+    --neutral-800: 0 0% 15%;
+    --neutral-900: 0 0% 10%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 6.7%;
+    --card: var(--bg-secondary);
+    --card-foreground: var(--text-primary);
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 6.7%;
+    --popover: var(--bg-secondary);
+    --popover-foreground: var(--text-primary);
 
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 6.7%;
+    --secondary: var(--bg-secondary);
+    --secondary-foreground: var(--text-primary);
 
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
+    --muted: var(--bg-tertiary);
+    --muted-foreground: var(--text-secondary);
 
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 6.7%;
+    --accent: var(--bg-tertiary);
+    --accent-foreground: var(--text-primary);
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 89.8%;
-    --input: 0 0% 96.1%;
-    --ring: 221.2 83.2% 53.3%;
+    --border: 36 18% 82%;          /* #d1c4b3 */
+    --input: var(--bg-secondary);
+    --ring: var(--primary);
 
     /* Upload zone */
-    --upload-border: 221.2 83.2% 53.3%;
-    --upload-bg: 221.2 83.2% 97.6%;
-    --upload-hover: 221.2 83.2% 95.1%;
+    --upload-border: var(--primary);
+    --upload-bg: 16 100% 97%;
+    --upload-hover: 16 100% 95%;
 
     --radius: 0.5rem;
 
@@ -75,41 +79,52 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark mode - Absurd style */
+    --bg-primary: 0 0% 10%;        /* #1a1a1a */
+    --bg-secondary: 0 0% 16%;      /* #2a2a2a */
+    --bg-tertiary: 0 0% 7%;        /* #111111 */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --background: var(--bg-primary);
+    --foreground: 36 26% 92%;      /* #ece0cf */
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --text-primary: 36 26% 92%;
+    --text-secondary: 220 9% 61%;  /* #9ca3af */
+    --text-muted: 220 9% 55%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Orange stays the same - it's iconic */
+    --primary: 16 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --card: var(--bg-secondary);
+    --card-foreground: var(--text-primary);
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --popover: var(--bg-secondary);
+    --popover-foreground: var(--text-primary);
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --secondary: var(--bg-secondary);
+    --secondary-foreground: var(--text-primary);
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --muted: var(--bg-tertiary);
+    --muted-foreground: var(--text-secondary);
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --accent: var(--bg-tertiary);
+    --accent-foreground: var(--text-primary);
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 23%;            /* #3a3a3a */
+    --input: var(--bg-secondary);
+    --ring: var(--primary);
+
+    --sidebar-background: var(--bg-secondary);
+    --sidebar-foreground: var(--text-primary);
+    --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: var(--bg-tertiary);
+    --sidebar-accent-foreground: var(--text-primary);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--primary);
   }
 }
 
@@ -119,7 +134,8 @@
   }
 
   body {
-    @apply bg-background text-foreground font-inter antialiased;
+    @apply bg-background text-foreground font-jura antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   h1,

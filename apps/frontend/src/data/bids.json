@@ -1,0 +1,46 @@
+[
+  {
+    "id": "bid-1",
+    "printRequestId": "req-2",
+    "makerId": "maker-1",
+    "printerName": "Prusa i3 MK3S+",
+    "quotedPrice": 245.50,
+    "estimatedDays": 1,
+    "message": "Can start this tomorrow morning! I have PETG Clear Natural in stock. High quality guaranteed.",
+    "createdAt": "2025-10-10T15:30:00Z",
+    "status": "pending"
+  },
+  {
+    "id": "bid-2",
+    "printRequestId": "req-2",
+    "makerId": "maker-2",
+    "printerName": "Bambu Lab X1 Carbon",
+    "quotedPrice": 298.00,
+    "estimatedDays": 0.5,
+    "message": "Premium finish with my X1 Carbon. Can deliver same-day if you order before 2 PM.",
+    "createdAt": "2025-10-10T16:12:00Z",
+    "status": "pending"
+  },
+  {
+    "id": "bid-3",
+    "printRequestId": "req-2",
+    "makerId": "maker-4",
+    "printerName": "Anycubic Kobra Max",
+    "quotedPrice": 220.00,
+    "estimatedDays": 2,
+    "message": "Budget-friendly option. Reliable quality, slightly longer timeline.",
+    "createdAt": "2025-10-10T17:45:00Z",
+    "status": "pending"
+  },
+  {
+    "id": "bid-4",
+    "printRequestId": "req-3",
+    "makerId": "maker-3",
+    "printerName": "Voron 2.4",
+    "quotedPrice": 380.00,
+    "estimatedDays": 1,
+    "message": "Perfect project for vase mode! Glow Green PLA will look amazing. I love artistic prints!",
+    "createdAt": "2025-10-09T10:00:00Z",
+    "status": "accepted"
+  }
+]
