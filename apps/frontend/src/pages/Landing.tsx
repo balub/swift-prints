@@ -27,9 +27,11 @@ const Landing = () => {
     null
   );
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const navigate = useNavigate();
 
   const handleFileUpload = async (file: File) => {
+    setUploadedFile(file);
     setIsAnalyzing(true);
     try {
       // Mock API call - in real app would call /api/analyze

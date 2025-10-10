@@ -5,9 +5,12 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { STLViewer } from "@/components/STLViewer";
+import { SimpleSTLViewer } from "@/components/SimpleSTLViewer";
 
 interface FileUploadBoxProps {
   onFileUpload: (file: File) => void;
@@ -17,6 +20,8 @@ interface FileUploadBoxProps {
 const FileUploadBox = ({ onFileUpload, isAnalyzing }: FileUploadBoxProps) => {
   const [dragOver, setDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -45,6 +50,7 @@ const FileUploadBox = ({ onFileUpload, isAnalyzing }: FileUploadBoxProps) => {
     if (files && files.length > 0) {
       const file = files[0];
       if (file.name.toLowerCase().endsWith(".stl")) {
+        setUploadedFile(file);
         handleFileUpload(file);
       }
     }
@@ -53,7 +59,9 @@ const FileUploadBox = ({ onFileUpload, isAnalyzing }: FileUploadBoxProps) => {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleFileUpload(files[0]);
+      const file = files[0];
+      setUploadedFile(file);
+      handleFileUpload(file);
     }
   };
 
@@ -167,6 +175,30 @@ const FileUploadBox = ({ onFileUpload, isAnalyzing }: FileUploadBoxProps) => {
           )}
         </div>
       </div>
+
+      {/* STL Preview - Below upload, above analysis */}
+      {uploadedFile && !isAnalyzing && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-text-primary">
+              3D Preview
+            </h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              {showPreview ? "Hide" : "Show"} Preview
+            </Button>
+          </div>
+          {showPreview && (
+            <div className="h-96">
+              <STLViewer file={uploadedFile} className="h-full" />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
