@@ -4,14 +4,14 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm --parallel --recursive dev",
+    "dev": "pnpm dev:frontend & pnpm dev:backend",
     "dev:frontend": "pnpm --filter @swift-prints/frontend dev",
-    "dev:backend": "pnpm --filter @swift-prints/backend dev",
-    "build": "pnpm --recursive build",
+    "dev:backend": "cd apps/backend && python3 -m uvicorn main:app --reload --host 0.0.0.0 --port ${PORT:-3001}",
+    "build": "pnpm build:frontend && pnpm build:backend",
     "build:frontend": "pnpm --filter @swift-prints/frontend build",
-    "build:backend": "pnpm --filter @swift-prints/backend build",
-    "lint": "pnpm --recursive lint",
-    "type-check": "pnpm --recursive type-check"
+    "build:backend": "cd apps/backend && python3 -m compileall .",
+    "lint": "pnpm --filter @swift-prints/frontend lint",
+    "type-check": "pnpm --filter @swift-prints/frontend type-check"
   },
   "devDependencies": {
     "pnpm": "^8.15.0"

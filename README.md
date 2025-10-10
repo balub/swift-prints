@@ -8,7 +8,7 @@ A pnpm monorepo containing the Swift Prints application with separate frontend a
 swift-prints/
 ├── apps/
 │   ├── frontend/       # React + Vite frontend application
-│   └── backend/        # Node.js + Express backend API
+│   └── backend/        # FastAPI (Python) backend API
 ├── pnpm-workspace.yaml # pnpm workspace configuration
 └── package.json        # Root package.json with workspace scripts
 ```
@@ -19,6 +19,7 @@ swift-prints/
 
 - Node.js (version 18 or higher)
 - pnpm (version 8 or higher)
+- Python 3.10 or higher (for the backend)
 
 ### Installation
 
@@ -80,9 +81,10 @@ pnpm lint
 
 ### Backend (`apps/backend`)
 
-- **Framework**: Node.js + Express + TypeScript
+- **Framework**: FastAPI (Python)
 - **Port**: 3001 (development)
-- **Features**: CORS, Helmet security, JSON parsing
+- **Features**: Minimal service exposing `/health` and `/ping`
+- **Development**: `cd apps/backend && pip install -r requirements.txt && uvicorn main:app --reload`
 
 ## Available Scripts
 

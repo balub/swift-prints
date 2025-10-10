@@ -87,3 +87,12 @@ dist
 # Temporary folders
 tmp/
 temp/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local storage uploads
+apps/backend/uploads/
