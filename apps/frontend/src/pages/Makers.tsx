@@ -4,105 +4,129 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ProgressIndicator } from "@/components/ProgressIndicator";
-import { ArrowLeft, MapPin, Star, Filter, Printer, Clock } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  Star,
+  Filter,
+  Printer,
+  Clock,
+  Package,
+} from "lucide-react";
+import { useMakers } from "@/hooks/api/useMakers";
+import { useMakerUpdates } from "@/hooks/useMakerUpdates";
+import { MakerPublicResponse, MakerSearchFilters } from "@/types/api";
+import { toast } from "sonner";
+import { MakerCardSkeletonGrid } from "@/components/MakerCardSkeleton";
+import ErrorFallback from "@/components/ErrorFallback";
+import EmptyState from "@/components/EmptyState";
 
-interface Maker {
-  id: string;
-  name: string;
-  rating: number;
-  reviews: number;
-  location: string;
-  materials: string[];
-  hourlyRate: number;
-  pricePerGram: number;
-  image: string;
-  verified: boolean;
-}
+// Helper function to get unique materials from makers
+const getUniqueMaterials = (makers: MakerPublicResponse[]): string[] => {
+  const materials = new Set<string>();
+  makers.forEach((maker) => {
+    maker.material_types?.forEach((material) => {
+      materials.add(material);
+    });
+  });
+  return Array.from(materials);
+};
 
-const mockMakers: Maker[] = [
-  {
-    id: "1",
-    name: "TechPrint Solutions",
-    rating: 4.8,
-    reviews: 127,
-    location: "Downtown, 2.3 miles",
-    materials: ["PLA", "ABS", "PETG", "TPU"],
-    hourlyRate: 15,
-    pricePerGram: 0.025,
-    image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=200",
-    verified: true,
-  },
-  {
-    id: "2",
-    name: "Precision Makers Co.",
-    rating: 4.9,
-    reviews: 89,
-    location: "Westside, 3.7 miles",
-    materials: ["PLA", "ABS", "Wood Fill", "Carbon Fiber"],
-    hourlyRate: 18,
-    pricePerGram: 0.035,
-    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=200",
-    verified: true,
-  },
-  {
-    id: "3",
-    name: "Local Print Shop",
-    rating: 4.6,
-    reviews: 234,
-    location: "Eastside, 1.8 miles",
-    materials: ["PLA", "ABS", "PETG"],
-    hourlyRate: 12,
-    pricePerGram: 0.028,
-    image: "https://images.unsplash.com/photo-1565106430482-8f6e74349ca1?w=200",
-    verified: false,
-  },
-  {
-    id: "4",
-    name: "ProtoForge Studio",
-    rating: 5.0,
-    reviews: 45,
-    location: "Northside, 4.2 miles",
-    materials: ["PLA", "ABS", "PETG", "Nylon", "Metal Fill"],
-    hourlyRate: 25,
-    pricePerGram: 0.045,
-    image: "https://images.unsplash.com/photo-1589254066213-a0c7dc853511?w=200",
-    verified: true,
-  },
-];
+// Helper function to calculate estimated cost
+const calculateEstimatedCost = (
+  maker: MakerPublicResponse,
+  analysis: any
+): number => {
+  if (!analysis) return 0;
+
+  // Use default pricing for estimation since we don't have detailed printer data in public response
+  const defaultPricePerGram = 0.03; // Default PLA price
+  const defaultHourlyRate = 15; // Default hourly rate
+
+  // Calculate cost: material cost + labor cost (estimated)
+  const materialCost = analysis.filament_grams * defaultPricePerGram;
+  const laborCost = analysis.print_time_hours * defaultHourlyRate;
+
+  return materialCost + laborCost;
+};
 
 const Makers = () => {
-  const [makers, setMakers] = useState<Maker[]>(mockMakers);
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedMakers, setSelectedMakers] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<"rating" | "price" | "distance">(
     "rating"
   );
   const [minRating, setMinRating] = useState(0);
+  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { analysis, estimate } = location.state || {};
 
+  // Build search filters
+  const searchFilters: MakerSearchFilters = {
+    material_types:
+      selectedMaterials.length > 0 ? selectedMaterials : undefined,
+    min_rating: minRating > 0 ? minRating : undefined,
+    verified_only: verifiedOnly,
+    available_only: true,
+    limit: 50,
+    offset: 0,
+  };
+
+  // Fetch makers data
+  const { data: makers = [], isLoading, error } = useMakers(searchFilters);
+
+  // Set up real-time updates for maker availability
+  const { connected: wsConnected } = useMakerUpdates({
+    enableNotifications: false, // Don't show notifications for general availability updates
+  });
+
+  // Client-side filtering and sorting
   const filteredMakers = makers
     .filter(
       (maker) =>
+        searchQuery === "" ||
         maker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         maker.location.toLowerCase().includes(searchQuery.toLowerCase())
     )
-    .filter((maker) => maker.rating >= minRating)
     .sort((a, b) => {
       switch (sortBy) {
         case "rating":
           return b.rating - a.rating;
         case "price":
-          return a.pricePerGram - b.pricePerGram;
+          // Sort by estimated cost
+          const costA = calculateEstimatedCost(a, analysis);
+          const costB = calculateEstimatedCost(b, analysis);
+          return costA - costB;
         case "distance":
-          // Mock distance sorting - in real app would use actual coordinates
-          return 0;
+          // For now, sort by location string - in real app would use coordinates
+          return a.location.localeCompare(b.location);
         default:
           return 0;
       }
     });
+
+  // Get unique materials for filter options
+  const availableMaterials = getUniqueMaterials(makers);
+
+  // Handle material filter toggle
+  const toggleMaterial = (material: string) => {
+    setSelectedMaterials((prev) =>
+      prev.includes(material)
+        ? prev.filter((m) => m !== material)
+        : [...prev, material]
+    );
+  };
+
+  // Show error toast if API call fails
+  useEffect(() => {
+    if (error) {
+      toast.error("Failed to load makers", {
+        description: "Please try refreshing the page",
+      });
+    }
+  }, [error]);
 
   const progressSteps = [
     { id: "upload", title: "Upload File", completed: true, current: false },
@@ -111,12 +135,12 @@ const Makers = () => {
     { id: "order", title: "Place Order", completed: false, current: false },
   ];
 
-  const handleRequestPrint = (maker: Maker) => {
+  const handleRequestPrint = (maker: MakerPublicResponse) => {
     navigate("/order", {
       state: {
         maker,
         analysis,
-        estimate,
+        estimate: calculateEstimatedCost(maker, analysis),
       },
     });
   };
@@ -139,9 +163,21 @@ const Makers = () => {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-            <h1 className="text-3xl font-light text-text-primary">
-              Choose Your Maker
-            </h1>
+            <div>
+              <h1 className="text-3xl font-light text-text-primary">
+                Choose Your Maker
+              </h1>
+              <div className="flex items-center mt-1">
+                <div
+                  className={`w-2 h-2 rounded-full mr-2 ${
+                    wsConnected ? "bg-green-500" : "bg-gray-400"
+                  }`}
+                />
+                <span className="text-sm text-text-muted">
+                  {wsConnected ? "Live updates active" : "Offline mode"}
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -198,10 +234,15 @@ const Makers = () => {
                     Materials
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {["PLA", "ABS", "PETG", "TPU"].map((material) => (
+                    {availableMaterials.map((material) => (
                       <button
                         key={material}
-                        className="px-3 py-1 text-xs border border-border rounded-full hover:bg-primary/10 transition-colors"
+                        onClick={() => toggleMaterial(material)}
+                        className={`px-3 py-1 text-xs border rounded-full transition-colors ${
+                          selectedMaterials.includes(material)
+                            ? "bg-primary text-white border-primary"
+                            : "border-border hover:bg-primary/10"
+                        }`}
                       >
                         {material}
                       </button>
@@ -213,7 +254,13 @@ const Makers = () => {
                     Verification
                   </label>
                   <div className="flex items-center space-x-2">
-                    <input type="checkbox" id="verified" className="rounded" />
+                    <input
+                      type="checkbox"
+                      id="verified"
+                      className="rounded"
+                      checked={verifiedOnly}
+                      onChange={(e) => setVerifiedOnly(e.target.checked)}
+                    />
                     <label
                       htmlFor="verified"
                       className="text-sm text-text-muted"
@@ -252,120 +299,167 @@ const Makers = () => {
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMakers.map((maker) => (
-            <Card
-              key={maker.id}
-              className="border border-border hover:shadow-md transition-shadow duration-200"
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4 mb-4">
-                  <img
-                    src={maker.image}
-                    alt={maker.name}
-                    className="w-12 h-12 rounded-lg object-cover"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="font-medium text-text-primary">
-                        {maker.name}
-                      </h3>
-                      {maker.verified && (
-                        <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-text-muted mb-2">
-                      <div className="flex items-center">
-                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span className="ml-1">{maker.rating}</span>
-                        <span className="ml-1">({maker.reviews})</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center text-sm text-text-muted">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {maker.location}
-                    </div>
-                  </div>
-                </div>
+        {/* Loading State */}
+        {isLoading && <MakerCardSkeletonGrid count={6} />}
 
-                <div className="mb-4">
-                  <p className="text-sm text-text-muted mb-2">Materials:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {maker.materials.map((material) => (
-                      <span
-                        key={material}
-                        className="px-2 py-1 bg-neutral-100 text-xs rounded-md text-text-secondary"
-                      >
-                        {material}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+        {/* Error State */}
+        {error && !isLoading && (
+          <ErrorFallback
+            error={error as Error}
+            title="Failed to load makers"
+            message="We couldn't load the makers list. Please check your connection and try again."
+            showRetry={true}
+            className="py-12"
+          />
+        )}
 
-                <div className="mb-4">
-                  <div className="bg-neutral-50 rounded-lg p-3 mb-3">
-                    <div className="text-sm text-text-muted mb-1">
-                      Estimated Cost
-                    </div>
-                    <div className="text-lg font-semibold text-primary">
-                      $
-                      {analysis
-                        ? (
-                            analysis.filament_g * maker.pricePerGram +
-                            2.5 * maker.hourlyRate
-                          ).toFixed(2)
-                        : "N/A"}
-                    </div>
-                    <div className="text-xs text-text-muted">
-                      Based on {analysis?.filament_g}g material +{" "}
-                      {analysis?.print_time} labor
-                    </div>
-                  </div>
+        {/* Makers Grid */}
+        {!isLoading && !error && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredMakers.map((maker) => {
+              const estimatedCost = calculateEstimatedCost(maker, analysis);
 
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <div className="flex items-center text-text-muted">
-                        <Clock className="w-4 h-4 mr-1" />
-                        Hourly Rate
-                      </div>
-                      <div className="font-medium">${maker.hourlyRate}/hr</div>
-                    </div>
-                    <div>
-                      <div className="flex items-center text-text-muted">
-                        <Printer className="w-4 h-4 mr-1" />
-                        Per Gram
-                      </div>
-                      <div className="font-medium">${maker.pricePerGram}/g</div>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  className="w-full"
-                  onClick={() => handleRequestPrint(maker)}
+              return (
+                <Card
+                  key={maker.id}
+                  className="border border-border hover:shadow-md transition-shadow duration-200"
                 >
-                  Request Print
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4 mb-4">
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                        <Printer className="w-6 h-6 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h3 className="font-medium text-text-primary">
+                            {maker.name}
+                          </h3>
+                          {maker.verified && (
+                            <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                              <div className="w-2 h-2 bg-white rounded-full" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-text-muted mb-2">
+                          <div className="flex items-center">
+                            <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                            <span className="ml-1">
+                              {maker.rating.toFixed(1)}
+                            </span>
+                            <span className="ml-1">
+                              ({maker.total_prints} prints)
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center text-sm text-text-muted">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          {maker.location_address || "Location not specified"}
+                        </div>
+                      </div>
+                    </div>
 
-        {filteredMakers.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-text-muted">
-              No makers found matching your criteria.
-            </p>
-            <Button
-              variant="ghost"
-              className="mt-2"
-              onClick={() => setSearchQuery("")}
-            >
-              Clear Search
-            </Button>
+                    {maker.description && (
+                      <div className="mb-4">
+                        <p className="text-sm text-text-muted line-clamp-2">
+                          {maker.description}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="mb-4">
+                      <p className="text-sm text-text-muted mb-2">Materials:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {maker.material_types.slice(0, 4).map((material) => (
+                          <span
+                            key={material}
+                            className="px-2 py-1 bg-neutral-100 text-xs rounded-md text-text-secondary"
+                          >
+                            {material}
+                          </span>
+                        ))}
+                        {maker.material_types.length > 4 && (
+                          <span className="px-2 py-1 bg-neutral-100 text-xs rounded-md text-text-secondary">
+                            +{maker.material_types.length - 4} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <div className="bg-neutral-50 rounded-lg p-3 mb-3">
+                        <div className="text-sm text-text-muted mb-1">
+                          Estimated Cost
+                        </div>
+                        <div className="text-lg font-semibold text-primary">
+                          ${analysis ? estimatedCost.toFixed(2) : "N/A"}
+                        </div>
+                        <div className="text-xs text-text-muted">
+                          {analysis ? (
+                            <>
+                              Based on {analysis.filament_grams}g material +{" "}
+                              {analysis.print_time_hours}h labor
+                            </>
+                          ) : (
+                            "Upload a file to see estimate"
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <div className="flex items-center text-text-muted">
+                            <Printer className="w-4 h-4 mr-1" />
+                            Printers
+                          </div>
+                          <div className="font-medium">
+                            {maker.printer_count} available
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-center text-text-muted">
+                            <Package className="w-4 h-4 mr-1" />
+                            Materials
+                          </div>
+                          <div className="font-medium">
+                            {maker.material_types.length} types
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={() => handleRequestPrint(maker)}
+                      disabled={!maker.available}
+                    >
+                      {maker.available
+                        ? "Request Print"
+                        : "Currently Unavailable"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
+        )}
+
+        {/* No Results */}
+        {!isLoading && !error && filteredMakers.length === 0 && (
+          <EmptyState
+            icon={<Package className="w-12 h-12" />}
+            title="No makers found"
+            description="We couldn't find any makers matching your criteria. Try adjusting your filters or search terms."
+            action={{
+              label: "Clear All Filters",
+              onClick: () => {
+                setSearchQuery("");
+                setSelectedMaterials([]);
+                setMinRating(0);
+                setVerifiedOnly(false);
+              },
+            }}
+            className="py-12"
+          />
         )}
       </div>
     </div>

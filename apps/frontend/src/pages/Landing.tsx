@@ -33,26 +33,30 @@ const Landing = () => {
   const handleFileUpload = async (file: File) => {
     setUploadedFile(file);
     setIsAnalyzing(true);
+
     try {
-      // Mock API call - in real app would call /api/analyze
+      // For now, use mock analysis since we haven't implemented the full upload flow yet
+      // In the real implementation, this would:
+      // 1. Upload the file using useFileUpload hook
+      // 2. Trigger analysis using useAnalyzeFile hook
+      // 3. Poll for results using useAnalysisStatus hook
+
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      setAnalysisResult({
+
+      const mockAnalysis = {
         filament_g: 25.4,
         filament_mm: 8500,
         print_time: "2h 34m",
         filename: file.name,
-      });
+      };
+
+      setAnalysisResult(mockAnalysis);
 
       // Redirect to studio page with the uploaded file
       navigate("/studio", {
         state: {
           uploadedFile: file,
-          analysis: {
-            filament_g: 25.4,
-            filament_mm: 8500,
-            print_time: "2h 34m",
-            filename: file.name,
-          },
+          analysis: mockAnalysis,
         },
       });
     } catch (error) {

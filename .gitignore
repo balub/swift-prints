@@ -99,3 +99,6 @@ apps/backend/uploads/
 
 # Documentation
 SYSTEM_OVERVIEW.md
+
+# Kiro configuration and specs
+.kiro/
