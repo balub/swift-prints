@@ -42,6 +42,19 @@ const Landing = () => {
         print_time: "2h 34m",
         filename: file.name,
       });
+
+      // Redirect to studio page with the uploaded file
+      navigate("/studio", {
+        state: {
+          uploadedFile: file,
+          analysis: {
+            filament_g: 25.4,
+            filament_mm: 8500,
+            print_time: "2h 34m",
+            filename: file.name,
+          },
+        },
+      });
     } catch (error) {
       console.error("Analysis failed:", error);
     } finally {
