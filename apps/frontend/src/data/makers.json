@@ -1,0 +1,244 @@
+[
+  {
+    "id": "maker-1",
+    "name": "Balu's Print Lab",
+    "email": "balu@printlab.com",
+    "phone": "+91-98765-43210",
+    "location": "Indiranagar, Bengaluru · 2.3 km",
+    "bio": "Veteran maker specializing in high-quality functional prints. 5+ years experience with engineering-grade materials.",
+    "rating": 4.9,
+    "totalPrints": 342,
+    "verified": true,
+    "qrCodeUrl": "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=balu@paytm&pn=BaluPrintLab",
+    "printers": [
+      {
+        "id": "printer-1",
+        "name": "Prusa i3 MK3S+",
+        "brand": "Prusa",
+        "model": "MK3S+",
+        "maxVolume": { "x": 250, "y": 210, "z": 210 },
+        "hourlyRate": 180,
+        "materials": [
+          {
+            "type": "PLA",
+            "pricePerGram": 2.5,
+            "colors": [
+              { "name": "Matte Black", "hex": "#1a1a1a", "quantityGrams": 850, "inStock": true },
+              { "name": "Pure White", "hex": "#ffffff", "quantityGrams": 620, "inStock": true },
+              { "name": "Signal Red", "hex": "#ff4500", "quantityGrams": 340, "inStock": true },
+              { "name": "Ocean Blue", "hex": "#0066cc", "quantityGrams": 0, "inStock": false }
+            ]
+          },
+          {
+            "type": "PETG",
+            "pricePerGram": 3.2,
+            "colors": [
+              { "name": "Clear Natural", "hex": "#f0f0f0", "quantityGrams": 450, "inStock": true },
+              { "name": "Galaxy Black", "hex": "#0a0a0a", "quantityGrams": 280, "inStock": true }
+            ]
+          },
+          {
+            "type": "TPU",
+            "pricePerGram": 4.5,
+            "colors": [
+              { "name": "Flexible Black", "hex": "#2a2a2a", "quantityGrams": 200, "inStock": true }
+            ]
+          }
+        ],
+        "capabilities": {
+          "layerHeights": [0.1, 0.15, 0.2, 0.25, 0.3],
+          "infillTypes": ["grid", "honeycomb", "gyroid", "triangular"],
+          "supportsVaseMode": true,
+          "supportsBedAdhesion": ["brim", "raft", "skirt", "none"]
+        }
+      },
+      {
+        "id": "printer-2",
+        "name": "Ender 3 V2",
+        "brand": "Creality",
+        "model": "Ender 3 V2",
+        "maxVolume": { "x": 220, "y": 220, "z": 250 },
+        "hourlyRate": 120,
+        "materials": [
+          {
+            "type": "PLA",
+            "pricePerGram": 2.0,
+            "colors": [
+              { "name": "Forest Green", "hex": "#228b22", "quantityGrams": 590, "inStock": true },
+              { "name": "Sunset Orange", "hex": "#ff8c00", "quantityGrams": 410, "inStock": true },
+              { "name": "Royal Purple", "hex": "#7851a9", "quantityGrams": 120, "inStock": true }
+            ]
+          }
+        ],
+        "capabilities": {
+          "layerHeights": [0.15, 0.2, 0.25, 0.3],
+          "infillTypes": ["grid", "honeycomb"],
+          "supportsVaseMode": false,
+          "supportsBedAdhesion": ["brim", "skirt", "none"]
+        }
+      }
+    ]
+  },
+  {
+    "id": "maker-2",
+    "name": "Precision Makers Co.",
+    "email": "hello@precisionmakers.in",
+    "phone": "+91-99876-54321",
+    "location": "Koramangala, Bengaluru · 4.7 km",
+    "bio": "Premium 3D printing for prototypes and custom parts. Fast turnaround with enterprise-grade quality.",
+    "rating": 4.7,
+    "totalPrints": 178,
+    "verified": true,
+    "qrCodeUrl": "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=precision@paytm&pn=PrecisionMakers",
+    "printers": [
+      {
+        "id": "printer-3",
+        "name": "Bambu Lab X1 Carbon",
+        "brand": "Bambu Lab",
+        "model": "X1 Carbon",
+        "maxVolume": { "x": 256, "y": 256, "z": 256 },
+        "hourlyRate": 250,
+        "materials": [
+          {
+            "type": "PLA",
+            "pricePerGram": 3.0,
+            "colors": [
+              { "name": "Carbon Black", "hex": "#0d0d0d", "quantityGrams": 1000, "inStock": true },
+              { "name": "Snow White", "hex": "#fafafa", "quantityGrams": 875, "inStock": true },
+              { "name": "Neon Yellow", "hex": "#ffff00", "quantityGrams": 320, "inStock": true }
+            ]
+          },
+          {
+            "type": "ABS",
+            "pricePerGram": 3.5,
+            "colors": [
+              { "name": "Industrial Grey", "hex": "#6c757d", "quantityGrams": 650, "inStock": true },
+              { "name": "Racing Red", "hex": "#dc143c", "quantityGrams": 0, "inStock": false }
+            ]
+          },
+          {
+            "type": "Carbon Fiber",
+            "pricePerGram": 8.0,
+            "colors": [
+              { "name": "Carbon Weave", "hex": "#1c1c1c", "quantityGrams": 150, "inStock": true }
+            ]
+          }
+        ],
+        "capabilities": {
+          "layerHeights": [0.08, 0.1, 0.12, 0.15, 0.2, 0.25],
+          "infillTypes": ["grid", "honeycomb", "gyroid", "triangular", "cubic"],
+          "supportsVaseMode": true,
+          "supportsBedAdhesion": ["brim", "raft", "skirt", "none"]
+        }
+      }
+    ]
+  },
+  {
+    "id": "maker-3",
+    "name": "Amit's Absurd Prints",
+    "email": "amit@absurdprints.com",
+    "phone": "+91-88888-88888",
+    "location": "Whitefield, Bengaluru · 8.2 km",
+    "bio": "Experimental prints & artistic pieces. If you can dream it, I can print it! Open-source hardware enthusiast.",
+    "rating": 4.8,
+    "totalPrints": 89,
+    "verified": false,
+    "qrCodeUrl": "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=amit@absurd&pn=AmitAbsurdPrints",
+    "printers": [
+      {
+        "id": "printer-4",
+        "name": "Voron 2.4",
+        "brand": "Voron",
+        "model": "2.4",
+        "maxVolume": { "x": 350, "y": 350, "z": 330 },
+        "hourlyRate": 200,
+        "materials": [
+          {
+            "type": "PLA",
+            "pricePerGram": 2.8,
+            "colors": [
+              { "name": "Cosmic Black", "hex": "#000000", "quantityGrams": 780, "inStock": true },
+              { "name": "Glow Green", "hex": "#39ff14", "quantityGrams": 420, "inStock": true },
+              { "name": "UV Pink", "hex": "#ff69b4", "quantityGrams": 190, "inStock": true }
+            ]
+          },
+          {
+            "type": "PETG",
+            "pricePerGram": 3.8,
+            "colors": [
+              { "name": "Transparent Clear", "hex": "#e8e8e8", "quantityGrams": 560, "inStock": true }
+            ]
+          },
+          {
+            "type": "TPU",
+            "pricePerGram": 5.2,
+            "colors": [
+              { "name": "Rubber Black", "hex": "#1f1f1f", "quantityGrams": 340, "inStock": true },
+              { "name": "Flex Orange", "hex": "#ff7f00", "quantityGrams": 0, "inStock": false }
+            ]
+          },
+          {
+            "type": "Wood Fill",
+            "pricePerGram": 4.0,
+            "colors": [
+              { "name": "Natural Oak", "hex": "#b8860b", "quantityGrams": 250, "inStock": true }
+            ]
+          }
+        ],
+        "capabilities": {
+          "layerHeights": [0.1, 0.15, 0.2, 0.25, 0.3],
+          "infillTypes": ["grid", "honeycomb", "gyroid", "triangular", "cubic", "octahedral"],
+          "supportsVaseMode": true,
+          "supportsBedAdhesion": ["brim", "raft", "skirt", "none"]
+        }
+      }
+    ]
+  },
+  {
+    "id": "maker-4",
+    "name": "RapidProto Studio",
+    "email": "contact@rapidproto.co.in",
+    "phone": "+91-77777-12345",
+    "location": "HSR Layout, Bengaluru · 5.1 km",
+    "bio": "Quick prototyping specialists. Same-day prints available for urgent projects. Engineering & industrial grade.",
+    "rating": 4.6,
+    "totalPrints": 267,
+    "verified": true,
+    "qrCodeUrl": "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=rapidproto@paytm&pn=RapidProto",
+    "printers": [
+      {
+        "id": "printer-5",
+        "name": "Anycubic Kobra Max",
+        "brand": "Anycubic",
+        "model": "Kobra Max",
+        "maxVolume": { "x": 400, "y": 400, "z": 450 },
+        "hourlyRate": 150,
+        "materials": [
+          {
+            "type": "PLA",
+            "pricePerGram": 2.2,
+            "colors": [
+              { "name": "Jet Black", "hex": "#0a0a0a", "quantityGrams": 920, "inStock": true },
+              { "name": "Arctic White", "hex": "#f5f5f5", "quantityGrams": 710, "inStock": true },
+              { "name": "Steel Grey", "hex": "#808080", "quantityGrams": 380, "inStock": true }
+            ]
+          },
+          {
+            "type": "PETG",
+            "pricePerGram": 3.0,
+            "colors": [
+              { "name": "Strong Black", "hex": "#1a1a1a", "quantityGrams": 490, "inStock": true },
+              { "name": "Safety Yellow", "hex": "#eed202", "quantityGrams": 230, "inStock": true }
+            ]
+          }
+        ],
+        "capabilities": {
+          "layerHeights": [0.15, 0.2, 0.25, 0.3],
+          "infillTypes": ["grid", "honeycomb", "gyroid"],
+          "supportsVaseMode": true,
+          "supportsBedAdhesion": ["brim", "skirt", "none"]
+        }
+      }
+    ]
+  }
+]
