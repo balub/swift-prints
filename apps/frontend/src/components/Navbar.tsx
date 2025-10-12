@@ -20,6 +20,11 @@ const Navbar = () => {
     return false;
   };
 
+  // Hide navbar on PrintStudio page
+  if (location.pathname === "/studio") {
+    return null;
+  }
+
   return (
     <nav className="bg-background/95 backdrop-blur-md border-b border-border/50 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

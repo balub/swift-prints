@@ -1,0 +1,107 @@
+[
+  {
+    "type": "PLA",
+    "name": "PLA (Polylactic Acid)",
+    "description": "Easy to print, biodegradable, great for prototypes and decorative items. Not heat-resistant.",
+    "properties": {
+      "strength": "Medium",
+      "flexibility": "Low",
+      "heatResistance": "Low (60°C)",
+      "uvResistance": "Low",
+      "foodSafe": "Yes (check certification)"
+    },
+    "useCases": ["Prototypes", "Figurines", "Toys", "Decorative items"],
+    "priceRange": { "min": 2.0, "max": 3.5 },
+    "icon": "fa-leaf"
+  },
+  {
+    "type": "PETG",
+    "name": "PETG (Polyethylene Terephthalate Glycol)",
+    "description": "Strong, durable, and chemical-resistant. Good for functional parts that need impact resistance.",
+    "properties": {
+      "strength": "High",
+      "flexibility": "Medium",
+      "heatResistance": "Medium (80°C)",
+      "uvResistance": "Medium",
+      "foodSafe": "Yes (check certification)"
+    },
+    "useCases": ["Mechanical parts", "Containers", "Outdoor use", "Protective cases"],
+    "priceRange": { "min": 3.0, "max": 4.5 },
+    "icon": "fa-shield-alt"
+  },
+  {
+    "type": "ABS",
+    "name": "ABS (Acrylonitrile Butadiene Styrene)",
+    "description": "Tough, heat-resistant plastic. Requires enclosed printer due to fumes. Great for automotive parts.",
+    "properties": {
+      "strength": "High",
+      "flexibility": "Low",
+      "heatResistance": "High (100°C)",
+      "uvResistance": "Low",
+      "foodSafe": "No"
+    },
+    "useCases": ["Automotive parts", "Electronics housings", "Functional prototypes"],
+    "priceRange": { "min": 3.0, "max": 4.0 },
+    "icon": "fa-car"
+  },
+  {
+    "type": "TPU",
+    "name": "TPU (Thermoplastic Polyurethane)",
+    "description": "Flexible, rubber-like material. Great for phone cases, wearables, and shock-absorbing parts.",
+    "properties": {
+      "strength": "Medium",
+      "flexibility": "Very High",
+      "heatResistance": "Medium (70°C)",
+      "uvResistance": "Medium",
+      "foodSafe": "No"
+    },
+    "useCases": ["Phone cases", "Wearables", "Gaskets", "Flexible hinges"],
+    "priceRange": { "min": 4.5, "max": 6.0 },
+    "icon": "fa-mobile-alt"
+  },
+  {
+    "type": "Carbon Fiber",
+    "name": "Carbon Fiber Composite",
+    "description": "PLA/PETG infused with carbon fiber. Very stiff, lightweight, and strong. Premium material.",
+    "properties": {
+      "strength": "Very High",
+      "flexibility": "Very Low",
+      "heatResistance": "Medium (varies)",
+      "uvResistance": "High",
+      "foodSafe": "No"
+    },
+    "useCases": ["Aerospace parts", "Racing drones", "High-performance parts"],
+    "priceRange": { "min": 7.0, "max": 10.0 },
+    "icon": "fa-bolt"
+  },
+  {
+    "type": "Wood Fill",
+    "name": "Wood-Filled PLA",
+    "description": "PLA mixed with wood fibers. Prints look and feel like wood. Can be sanded and stained.",
+    "properties": {
+      "strength": "Medium",
+      "flexibility": "Low",
+      "heatResistance": "Low (60°C)",
+      "uvResistance": "Medium",
+      "foodSafe": "No"
+    },
+    "useCases": ["Decorative items", "Art pieces", "Furniture parts", "Cosplay props"],
+    "priceRange": { "min": 3.5, "max": 5.0 },
+    "icon": "fa-tree"
+  },
+  {
+    "type": "Nylon",
+    "name": "Nylon (Polyamide)",
+    "description": "Extremely strong and durable. Slightly flexible. Absorbs moisture, needs dry storage.",
+    "properties": {
+      "strength": "Very High",
+      "flexibility": "Medium",
+      "heatResistance": "High (90°C)",
+      "uvResistance": "Low",
+      "foodSafe": "No"
+    },
+    "useCases": ["Gears", "Bearings", "Functional parts", "Tools"],
+    "priceRange": { "min": 5.0, "max": 7.0 },
+    "icon": "fa-cog"
+  }
+]
