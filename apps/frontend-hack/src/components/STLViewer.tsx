@@ -15,7 +15,6 @@ interface STLViewerProps {
 
 const STLModel = ({ url }: { url: string }) => {
   const meshRef = useRef<THREE.Mesh>(null!);
-  const [hovered, setHovered] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const geometry = useLoader(STLLoader as any, url);
@@ -47,12 +46,9 @@ const STLModel = ({ url }: { url: string }) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={meshRef as any}
       geometry={geometry}
-      onPointerOver={() => setHovered(true)}
-      onPointerOut={() => setHovered(false)}
-      scale={hovered ? 1.05 : 1}
     >
       <meshStandardMaterial
-        color={hovered ? "#3b82f6" : "#64748b"}
+        color="#64748b"
         metalness={0.1}
         roughness={0.3}
       />

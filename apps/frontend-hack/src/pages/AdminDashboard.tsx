@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,20 +14,13 @@ import {
   ArrowRight,
   Settings,
 } from "lucide-react";
-import { getOrderStats, getAdminPrinters } from "@/lib/api";
+import { useOrderStats, useAdminPrinters } from "@/services";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
-  const { data: stats, isLoading: loadingStats } = useQuery({
-    queryKey: ["orderStats"],
-    queryFn: getOrderStats,
-  });
-
-  const { data: printers, isLoading: loadingPrinters } = useQuery({
-    queryKey: ["adminPrinters"],
-    queryFn: getAdminPrinters,
-  });
+  const { data: stats, isLoading: loadingStats } = useOrderStats();
+  const { data: printers, isLoading: loadingPrinters } = useAdminPrinters();
 
   return (
     <div className="min-h-screen bg-background">
@@ -232,4 +224,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-

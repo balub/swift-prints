@@ -1,5 +1,4 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +13,7 @@ import {
   PartyPopper,
   XCircle,
 } from "lucide-react";
-import { getOrder, type OrderStatus as OrderStatusType } from "@/lib/api";
+import { useOrder, type OrderStatus as OrderStatusType } from "@/services";
 
 const statusConfig: Record<
   OrderStatusType,
@@ -58,12 +57,7 @@ const OrderStatus = () => {
   const location = useLocation();
   const isNewOrder = location.state?.newOrder;
 
-  const { data: order, isLoading, error } = useQuery({
-    queryKey: ["order", orderId],
-    queryFn: () => getOrder(orderId!),
-    enabled: !!orderId,
-    refetchInterval: 10000, // Refresh every 10 seconds
-  });
+  const { data: order, isLoading, error } = useOrder(orderId);
 
   if (isLoading) {
     return (
@@ -81,7 +75,9 @@ const OrderStatus = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
-          <h1 className="text-2xl font-medium text-text-primary mb-4">Order Not Found</h1>
+          <h1 className="text-2xl font-medium text-text-primary mb-4">
+            Order Not Found
+          </h1>
           <p className="text-text-muted mb-6">
             We couldn't find an order with ID: {orderId}
           </p>
@@ -94,8 +90,8 @@ const OrderStatus = () => {
     );
   }
 
-  const status = statusConfig[order.status];
-  const StatusIcon = status.icon;
+  const statusInfo = statusConfig[order.status];
+  const StatusIcon = statusInfo.icon;
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,7 +101,9 @@ const OrderStatus = () => {
           <div className="mb-6 p-4 bg-green-100 border border-green-200 rounded-lg flex items-center gap-3">
             <CheckCircle className="w-6 h-6 text-green-600" />
             <div>
-              <p className="font-semibold text-green-800">Order Placed Successfully!</p>
+              <p className="font-semibold text-green-800">
+                Order Placed Successfully!
+              </p>
               <p className="text-sm text-green-700">
                 Your order has been submitted and is being processed.
               </p>
@@ -114,11 +112,17 @@ const OrderStatus = () => {
         )}
 
         <div className="flex items-center mb-6">
-          <Button variant="ghost" onClick={() => navigate("/orders")} className="mr-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/orders")}
+            className="mr-4"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
-          <h1 className="text-3xl font-light text-text-primary">Order Status</h1>
+          <h1 className="text-3xl font-light text-text-primary">
+            Order Status
+          </h1>
         </div>
 
         {/* Status Card */}
@@ -126,15 +130,19 @@ const OrderStatus = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                <div className={`w-16 h-16 ${status.bgColor} rounded-full flex items-center justify-center`}>
-                  <StatusIcon className={`w-8 h-8 ${status.color}`} />
+                <div
+                  className={`w-16 h-16 ${statusInfo.bgColor} rounded-full flex items-center justify-center`}
+                >
+                  <StatusIcon className={`w-8 h-8 ${statusInfo.color}`} />
                 </div>
                 <div>
-                  <Badge className={`${status.bgColor} ${status.color} border-0 mb-1`}>
-                    {status.label}
+                  <Badge
+                    className={`${statusInfo.bgColor} ${statusInfo.color} border-0 mb-1`}
+                  >
+                    {statusInfo.label}
                   </Badge>
                   <p className="text-sm text-text-muted">
-                    Order ID: {order.id.slice(0, 8)}...
+                    Order ID: {order.orderId.slice(0, 8)}...
                   </p>
                 </div>
               </div>
@@ -167,23 +175,36 @@ const OrderStatus = () => {
               </div>
               <div className="flex justify-between relative z-10">
                 {[
-                  { status: "PLACED", label: "Placed" },
-                  { status: "PRINTING", label: "Printing" },
-                  { status: "READY", label: "Ready" },
-                  { status: "COMPLETED", label: "Done" },
+                  { statusKey: "PLACED", label: "Placed" },
+                  { statusKey: "PRINTING", label: "Printing" },
+                  { statusKey: "READY", label: "Ready" },
+                  { statusKey: "COMPLETED", label: "Done" },
                 ].map((step, index) => {
                   const isActive =
-                    ["PLACED", "PRINTING", "READY", "COMPLETED"].indexOf(order.status) >= index;
+                    ["PLACED", "PRINTING", "READY", "COMPLETED"].indexOf(
+                      order.status
+                    ) >= index;
                   return (
-                    <div key={step.status} className="flex flex-col items-center">
+                    <div
+                      key={step.statusKey}
+                      className="flex flex-col items-center"
+                    >
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          isActive ? "bg-primary text-white" : "bg-neutral-200 text-text-muted"
+                          isActive
+                            ? "bg-primary text-white"
+                            : "bg-neutral-200 text-text-muted"
                         }`}
                       >
                         {index + 1}
                       </div>
-                      <span className={`text-xs mt-2 ${isActive ? "text-primary font-medium" : "text-text-muted"}`}>
+                      <span
+                        className={`text-xs mt-2 ${
+                          isActive
+                            ? "text-primary font-medium"
+                            : "text-text-muted"
+                        }`}
+                      >
                         {step.label}
                       </span>
                     </div>
@@ -202,20 +223,24 @@ const OrderStatus = () => {
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-text-muted">Filament Used</span>
-                <span className="font-medium">{order.filamentUsedGrams.toFixed(1)}g</span>
+                <span className="text-text-muted">File</span>
+                <span className="font-medium truncate max-w-[180px]">
+                  {order.filename}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">Print Time</span>
-                <span className="font-medium">{order.printTimeHours.toFixed(1)} hours</span>
+                <span className="text-text-muted">Printer</span>
+                <span className="font-medium">{order.printerName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">Material Cost</span>
-                <span className="font-medium">₹{order.materialCost.toFixed(2)}</span>
+                <span className="text-text-muted">Material</span>
+                <span className="font-medium">{order.filamentName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">Machine Time</span>
-                <span className="font-medium">₹{order.machineTimeCost.toFixed(2)}</span>
+                <span className="text-text-muted">Total Cost</span>
+                <span className="font-medium text-primary">
+                  ₹{order.totalCost.toFixed(2)}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -234,13 +259,15 @@ const OrderStatus = () => {
                 <span className="font-medium">{order.participantName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">Email</span>
-                <span className="font-medium text-xs">{order.participantEmail}</span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-text-muted">Ordered</span>
                 <span className="font-medium">
                   {new Date(order.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-muted">Last Updated</span>
+                <span className="font-medium">
+                  {new Date(order.updatedAt).toLocaleDateString()}
                 </span>
               </div>
             </CardContent>
@@ -264,4 +291,3 @@ const OrderStatus = () => {
 };
 
 export default OrderStatus;
-

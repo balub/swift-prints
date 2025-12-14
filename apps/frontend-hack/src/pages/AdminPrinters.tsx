@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,18 +30,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  getAdminPrinters,
-  createPrinter,
-  updatePrinter,
-  addFilament,
-  updateFilament,
+  useAdminPrinters,
+  useCreatePrinter,
+  useUpdatePrinter,
+  useAddFilament,
+  useUpdateFilament,
   type Printer as PrinterType,
   type Filament,
-} from "@/lib/api";
+} from "@/services";
 
 const AdminPrinters = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   // State for dialogs
   const [showAddPrinter, setShowAddPrinter] = useState(false);
@@ -54,67 +52,48 @@ const AdminPrinters = () => {
   const [printerForm, setPrinterForm] = useState({ name: "", hourlyRate: "" });
   const [filamentForm, setFilamentForm] = useState({ filamentType: "", name: "", pricePerGram: "" });
 
-  const { data: printers, isLoading, refetch } = useQuery({
-    queryKey: ["adminPrinters"],
-    queryFn: getAdminPrinters,
-  });
-
-  const createPrinterMutation = useMutation({
-    mutationFn: createPrinter,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminPrinters"] });
-      setShowAddPrinter(false);
-      setPrinterForm({ name: "", hourlyRate: "" });
-    },
-  });
-
-  const updatePrinterMutation = useMutation({
-    mutationFn: ({ printerId, data }: { printerId: string; data: { name?: string; hourlyRate?: number; isActive?: boolean } }) =>
-      updatePrinter(printerId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminPrinters"] });
-      setEditingPrinter(null);
-    },
-  });
-
-  const addFilamentMutation = useMutation({
-    mutationFn: ({ printerId, filament }: { printerId: string; filament: { filamentType: string; name: string; pricePerGram: number } }) =>
-      addFilament(printerId, filament),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminPrinters"] });
-      setShowAddFilament(null);
-      setFilamentForm({ filamentType: "", name: "", pricePerGram: "" });
-    },
-  });
-
-  const updateFilamentMutation = useMutation({
-    mutationFn: ({ filamentId, data }: { filamentId: string; data: { name?: string; pricePerGram?: number; isActive?: boolean } }) =>
-      updateFilament(filamentId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminPrinters"] });
-      setEditingFilament(null);
-    },
-  });
+  // Service hooks
+  const { data: printers, isLoading, refetch } = useAdminPrinters();
+  const createPrinterMutation = useCreatePrinter();
+  const updatePrinterMutation = useUpdatePrinter();
+  const addFilamentMutation = useAddFilament();
+  const updateFilamentMutation = useUpdateFilament();
 
   const handleCreatePrinter = () => {
     if (printerForm.name && printerForm.hourlyRate) {
-      createPrinterMutation.mutate({
-        name: printerForm.name,
-        hourlyRate: parseFloat(printerForm.hourlyRate),
-      });
+      createPrinterMutation.mutate(
+        {
+          name: printerForm.name,
+          hourlyRate: parseFloat(printerForm.hourlyRate),
+        },
+        {
+          onSuccess: () => {
+            setShowAddPrinter(false);
+            setPrinterForm({ name: "", hourlyRate: "" });
+          },
+        }
+      );
     }
   };
 
   const handleAddFilament = () => {
     if (showAddFilament && filamentForm.filamentType && filamentForm.name && filamentForm.pricePerGram) {
-      addFilamentMutation.mutate({
-        printerId: showAddFilament,
-        filament: {
-          filamentType: filamentForm.filamentType.toLowerCase(),
-          name: filamentForm.name,
-          pricePerGram: parseFloat(filamentForm.pricePerGram),
+      addFilamentMutation.mutate(
+        {
+          printerId: showAddFilament,
+          filament: {
+            filamentType: filamentForm.filamentType.toLowerCase(),
+            name: filamentForm.name,
+            pricePerGram: parseFloat(filamentForm.pricePerGram),
+          },
         },
-      });
+        {
+          onSuccess: () => {
+            setShowAddFilament(null);
+            setFilamentForm({ filamentType: "", name: "", pricePerGram: "" });
+          },
+        }
+      );
     }
   };
 
@@ -503,4 +482,3 @@ const AdminPrinters = () => {
 };
 
 export default AdminPrinters;
-

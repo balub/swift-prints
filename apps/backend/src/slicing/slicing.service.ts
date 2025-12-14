@@ -180,6 +180,7 @@ export class SlicingService {
     printTimeHours: number;
   } {
     let filamentUsedMm = 0;
+    let filamentUsedGrams: number | null = null;
     let printTimeSeconds = 0;
 
     // Parse PrusaSlicer G-code comments
@@ -198,13 +199,11 @@ export class SlicingService {
         /;\s*filament used \[g\]\s*=\s*([\d.]+)/i,
       );
       if (filamentGMatch) {
-        return {
-          filamentUsedGrams: parseFloat(filamentGMatch[1]),
-          printTimeHours: printTimeSeconds / 3600,
-        };
+        filamentUsedGrams = parseFloat(filamentGMatch[1]);
       }
 
-      // Estimated print time
+      // Estimated print time - try multiple formats
+      // Format 1: "estimated printing time (normal mode) = 1h 23m 45s"
       const timeMatch = line.match(
         /;\s*estimated printing time.*=\s*(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s)?/i,
       );
@@ -215,6 +214,26 @@ export class SlicingService {
         const seconds = parseInt(timeMatch[4] || '0');
         printTimeSeconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
       }
+
+      // Format 2: ";TIME:12345" (seconds)
+      const timeSecsMatch = line.match(/^;TIME:(\d+)/i);
+      if (timeSecsMatch && printTimeSeconds === 0) {
+        printTimeSeconds = parseInt(timeSecsMatch[1]);
+      }
+
+      // Format 3: ";Print time: 12345" (seconds)
+      const printTimeMatch = line.match(/;\s*Print time:\s*(\d+)/i);
+      if (printTimeMatch && printTimeSeconds === 0) {
+        printTimeSeconds = parseInt(printTimeMatch[1]);
+      }
+    }
+
+    // If we found filament in grams directly, use it
+    if (filamentUsedGrams !== null) {
+      return {
+        filamentUsedGrams: Math.round(filamentUsedGrams * 100) / 100,
+        printTimeHours: Math.round((printTimeSeconds / 3600) * 100) / 100,
+      };
     }
 
     // Convert mm to grams (1.75mm filament, PLA density 1.24 g/cm³)
@@ -223,10 +242,10 @@ export class SlicingService {
     const radiusCm = filamentDiameter / 20; // mm to cm / 2
     const lengthCm = filamentUsedMm / 10;
     const volumeCm3 = Math.PI * radiusCm * radiusCm * lengthCm;
-    const filamentUsedGrams = volumeCm3 * plaDensity;
+    const calculatedFilamentGrams = volumeCm3 * plaDensity;
 
     return {
-      filamentUsedGrams: Math.round(filamentUsedGrams * 100) / 100,
+      filamentUsedGrams: Math.round(calculatedFilamentGrams * 100) / 100,
       printTimeHours: Math.round((printTimeSeconds / 3600) * 100) / 100,
     };
   }

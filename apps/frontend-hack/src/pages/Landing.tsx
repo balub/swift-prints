@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
 import { FileUploadBox } from "@/components/FileUploadBox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,32 +16,31 @@ import {
   Package,
   TrendingUp,
 } from "lucide-react";
-import { analyzeUpload, type UploadResponse } from "@/lib/api";
+import { useAnalyzeUpload, type UploadResponse } from "@/services";
 
 const Landing = () => {
   const [analysisResult, setAnalysisResult] = useState<UploadResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const analyzeMutation = useMutation({
-    mutationFn: analyzeUpload,
-    onSuccess: (data) => {
-      setAnalysisResult(data);
-      setError(null);
-    },
-    onError: (err: Error) => {
-      setError(err.message);
-      setAnalysisResult(null);
-    },
-  });
+  const analyzeMutation = useAnalyzeUpload();
 
   const handleFileUpload = async (file: File) => {
-    analyzeMutation.mutate(file);
+    analyzeMutation.mutate(file, {
+      onSuccess: (data) => {
+        setAnalysisResult(data);
+        setError(null);
+      },
+      onError: (err: Error) => {
+        setError(err.message);
+        setAnalysisResult(null);
+      },
+    });
   };
 
   const handleContinue = () => {
     if (analysisResult) {
-      navigate("/studio", { state: { upload: analysisResult } });
+      navigate("/order", { state: { upload: analysisResult } });
     }
   };
 
@@ -338,4 +336,3 @@ const Landing = () => {
 };
 
 export default Landing;
-

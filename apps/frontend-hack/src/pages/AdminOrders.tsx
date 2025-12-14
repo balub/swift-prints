@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -32,7 +31,12 @@ import {
   Loader2,
   RefreshCw,
 } from "lucide-react";
-import { getAdminOrders, updateOrderStatus, type Order, type OrderStatus } from "@/lib/api";
+import {
+  useAdminOrders,
+  useUpdateOrderStatus,
+  type OrderStatus,
+  type AdminOrderListItem,
+} from "@/services";
 
 const statusConfig: Record<
   OrderStatus,
@@ -47,35 +51,29 @@ const statusConfig: Record<
 
 const AdminOrders = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [teamFilter, setTeamFilter] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<AdminOrderListItem | null>(null);
   const [newStatus, setNewStatus] = useState<OrderStatus | "">("");
 
-  const { data: orders, isLoading, refetch } = useQuery({
-    queryKey: ["adminOrders", statusFilter, teamFilter],
-    queryFn: () =>
-      getAdminOrders({
-        status: statusFilter === "all" ? undefined : statusFilter,
-        teamNumber: teamFilter || undefined,
-      }),
+  const { data: orders, isLoading, refetch } = useAdminOrders({
+    status: statusFilter === "all" ? undefined : statusFilter,
+    teamNumber: teamFilter || undefined,
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: ({ orderId, status }: { orderId: string; status: OrderStatus }) =>
-      updateOrderStatus(orderId, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminOrders"] });
-      queryClient.invalidateQueries({ queryKey: ["orderStats"] });
-      setSelectedOrder(null);
-      setNewStatus("");
-    },
-  });
+  const updateStatusMutation = useUpdateOrderStatus();
 
   const handleUpdateStatus = () => {
     if (selectedOrder && newStatus) {
-      updateStatusMutation.mutate({ orderId: selectedOrder.id, status: newStatus });
+      updateStatusMutation.mutate(
+        { orderId: selectedOrder.orderId, status: newStatus },
+        {
+          onSuccess: () => {
+            setSelectedOrder(null);
+            setNewStatus("");
+          },
+        }
+      );
     }
   };
 
@@ -149,7 +147,7 @@ const AdminOrders = () => {
             {orders.map((order) => {
               const status = statusConfig[order.status];
               return (
-                <Card key={order.id} className="hover:border-primary/50 transition-colors">
+                <Card key={order.orderId} className="hover:border-primary/50 transition-colors">
                   <CardContent className="p-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex-1">
@@ -158,7 +156,7 @@ const AdminOrders = () => {
                             {status.label}
                           </Badge>
                           <span className="text-sm text-text-muted">
-                            {order.id.slice(0, 8)}...
+                            {order.orderId.slice(0, 8)}...
                           </span>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
@@ -171,8 +169,8 @@ const AdminOrders = () => {
                             <span className="font-medium">{order.participantName}</span>
                           </div>
                           <div>
-                            <span className="text-text-muted">Filament:</span>{" "}
-                            <span className="font-medium">{order.filamentUsedGrams.toFixed(1)}g</span>
+                            <span className="text-text-muted">File:</span>{" "}
+                            <span className="font-medium truncate">{order.filename}</span>
                           </div>
                           <div>
                             <span className="text-text-muted">Total:</span>{" "}
@@ -188,7 +186,7 @@ const AdminOrders = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => navigate(`/orders/${order.id}`)}
+                          onClick={() => navigate(`/orders/${order.orderId}`)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           View
@@ -235,7 +233,7 @@ const AdminOrders = () => {
                   <div className="p-4 bg-muted rounded-lg">
                     <p className="text-sm">
                       <span className="text-text-muted">Order ID:</span>{" "}
-                      <span className="font-mono">{selectedOrder.id.slice(0, 8)}...</span>
+                      <span className="font-mono">{selectedOrder.orderId.slice(0, 8)}...</span>
                     </p>
                     <p className="text-sm">
                       <span className="text-text-muted">Team:</span>{" "}
@@ -318,4 +316,3 @@ const AdminOrders = () => {
 };
 
 export default AdminOrders;
-

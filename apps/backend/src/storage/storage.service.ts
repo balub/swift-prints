@@ -13,16 +13,24 @@ import { Readable } from 'stream';
 export class StorageService {
   private readonly logger = new Logger(StorageService.name);
   private readonly s3Client: S3Client;
+  private readonly s3ClientPublic: S3Client;
   private readonly bucket: string;
+  private readonly publicEndpoint: string;
 
   constructor(private configService: ConfigService) {
     const endpoint = this.configService.get<string>('S3_ENDPOINT');
     const accessKey = this.configService.get<string>('S3_ACCESS_KEY');
     const secretKey = this.configService.get<string>('S3_SECRET_KEY');
     const region = this.configService.get<string>('S3_REGION', 'us-east-1');
+    // Public endpoint for browser-accessible URLs (defaults to localhost:9000 for dev)
+    this.publicEndpoint = this.configService.get<string>(
+      'S3_PUBLIC_ENDPOINT',
+      'http://localhost:9000',
+    );
 
     this.bucket = this.configService.get<string>('S3_BUCKET', 'swiftprints');
 
+    // Internal S3 client for uploads/downloads within Docker network
     this.s3Client = new S3Client({
       endpoint,
       region,
@@ -33,7 +41,19 @@ export class StorageService {
       forcePathStyle: true, // Required for MinIO
     });
 
+    // Public S3 client for generating browser-accessible signed URLs
+    this.s3ClientPublic = new S3Client({
+      endpoint: this.publicEndpoint,
+      region,
+      credentials: {
+        accessKeyId: accessKey || 'minio',
+        secretAccessKey: secretKey || 'minio123',
+      },
+      forcePathStyle: true,
+    });
+
     this.logger.log(`Storage initialized with endpoint: ${endpoint}`);
+    this.logger.log(`Public endpoint for downloads: ${this.publicEndpoint}`);
   }
 
   /**
@@ -58,7 +78,7 @@ export class StorageService {
   }
 
   /**
-   * Get a signed URL for downloading a file
+   * Get a signed URL for downloading a file (browser-accessible)
    */
   async getSignedDownloadUrl(
     key: string,
@@ -69,7 +89,8 @@ export class StorageService {
       Key: key,
     });
 
-    const url = await getSignedUrl(this.s3Client, command, { expiresIn });
+    // Use public S3 client to generate browser-accessible URLs
+    const url = await getSignedUrl(this.s3ClientPublic, command, { expiresIn });
     return url;
   }
 
