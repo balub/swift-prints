@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "pnpm dev:frontend & pnpm dev:backend",
     "dev:frontend": "pnpm --filter @swift-prints/frontend dev",
+    "dev:frontend-hack": "pnpm --filter @swift-prints/frontend-hack dev",
     "dev:backend": "pnpm --filter @swift-prints/backend start:dev",
     "build": "pnpm build:frontend && pnpm build:backend",
     "build:frontend": "pnpm --filter @swift-prints/frontend build",
+    "build:frontend-hack": "pnpm --filter @swift-prints/frontend-hack build",
     "build:backend": "pnpm --filter @swift-prints/backend build",
     "lint": "pnpm --filter @swift-prints/frontend lint && pnpm --filter @swift-prints/backend lint",
     "type-check": "pnpm --filter @swift-prints/frontend type-check",

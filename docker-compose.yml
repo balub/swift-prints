@@ -68,7 +68,7 @@ services:
       S3_REGION: us-east-1
       SLICER_JOBS_PATH: /tmp/slicer_jobs
       SLICER_CONFIG_PATH: /config
-      CORS_ORIGIN: http://localhost:5173
+      CORS_ORIGIN: http://localhost:5173,http://localhost:8080,http://localhost:8081
     ports:
       - "3001:3001"
     depends_on:

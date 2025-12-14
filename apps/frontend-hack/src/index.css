@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Absurd Industries Design System - Saucy & Clean AF */
+
+@layer base {
+  :root {
+    /* Core backgrounds - Absurd beige palette */
+    --bg-primary: 36 26% 92%;      /* #ece0cf */
+    --bg-secondary: 0 0% 100%;     /* #ffffff */
+    --bg-tertiary: 36 23% 88%;     /* #e0d4c3 */
+
+    --background: var(--bg-primary);
+    --foreground: 0 0% 10%;        /* #1a1a1a */
+
+    /* Text hierarchy */
+    --text-primary: 0 0% 10%;      /* #1a1a1a */
+    --text-secondary: 0 0% 36%;    /* #5c5c5c */
+    --text-muted: 0 0% 45%;
+
+    /* Absurd Orange Accent - THE STAR */
+    --primary: 16 100% 50%;        /* #ff4500 - Absurd Orange */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 16 100% 45%;
+
+    /* Neutral palette */
+    --neutral-50: 36 26% 95%;
+    --neutral-100: 36 23% 90%;
+    --neutral-200: 36 20% 85%;
+    --neutral-300: 36 18% 75%;
+    --neutral-800: 0 0% 15%;
+    --neutral-900: 0 0% 10%;
+
+    --card: var(--bg-secondary);
+    --card-foreground: var(--text-primary);
+
+    --popover: var(--bg-secondary);
+    --popover-foreground: var(--text-primary);
+
+    --secondary: var(--bg-secondary);
+    --secondary-foreground: var(--text-primary);
+
+    --muted: var(--bg-tertiary);
+    --muted-foreground: var(--text-secondary);
+
+    --accent: var(--bg-tertiary);
+    --accent-foreground: var(--text-primary);
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 36 18% 82%;          /* #d1c4b3 */
+    --input: var(--bg-secondary);
+    --ring: var(--primary);
+
+    /* Upload zone */
+    --upload-border: var(--primary);
+    --upload-bg: 16 100% 97%;
+    --upload-hover: 16 100% 95%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark mode - Absurd style */
+    --bg-primary: 0 0% 10%;        /* #1a1a1a */
+    --bg-secondary: 0 0% 16%;      /* #2a2a2a */
+    --bg-tertiary: 0 0% 7%;        /* #111111 */
+
+    --background: var(--bg-primary);
+    --foreground: 36 26% 92%;      /* #ece0cf */
+
+    --text-primary: 36 26% 92%;
+    --text-secondary: 220 9% 61%;  /* #9ca3af */
+    --text-muted: 220 9% 55%;
+
+    /* Orange stays the same - it's iconic */
+    --primary: 16 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --card: var(--bg-secondary);
+    --card-foreground: var(--text-primary);
+
+    --popover: var(--bg-secondary);
+    --popover-foreground: var(--text-primary);
+
+    --secondary: var(--bg-secondary);
+    --secondary-foreground: var(--text-primary);
+
+    --muted: var(--bg-tertiary);
+    --muted-foreground: var(--text-secondary);
+
+    --accent: var(--bg-tertiary);
+    --accent-foreground: var(--text-primary);
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 23%;            /* #3a3a3a */
+    --input: var(--bg-secondary);
+    --ring: var(--primary);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-jura antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-text-primary font-medium;
+  }
+
+  p {
+    @apply text-text-secondary leading-relaxed;
+  }
+}
+
+@layer components {
+  /* Upload zone styles */
+  .upload-zone {
+    @apply border-2 border-dashed border-upload-border bg-upload-bg hover:bg-upload-hover;
+    @apply transition-all duration-300 ease-in-out;
+    @apply rounded-2xl p-12 text-center cursor-pointer;
+    @apply hover:shadow-lg hover:scale-[1.02];
+  }
+
+  .upload-zone.dragover {
+    @apply bg-upload-hover border-primary shadow-xl scale-[1.02];
+  }
+
+  /* Background patterns */
+  .bg-grid-pattern {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* Animation utilities */
+  .animate-in {
+    animation: slideInFromBottom 0.5s ease-out;
+  }
+
+  @keyframes slideInFromBottom {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/20;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
+  }
+
+  /* Enhanced shadows */
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+}
+
