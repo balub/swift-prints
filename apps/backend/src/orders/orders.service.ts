@@ -144,11 +144,16 @@ export class OrdersService {
    * Get order statistics (for admin dashboard)
    */
   async getStatistics() {
-    const [total, byStatus] = await Promise.all([
+    const [total, byStatus, revenueResult] = await Promise.all([
       this.prisma.order.count(),
       this.prisma.order.groupBy({
         by: ['status'],
         _count: true,
+      }),
+      this.prisma.order.aggregate({
+        _sum: {
+          totalCost: true,
+        },
       }),
     ]);
 
@@ -161,8 +166,13 @@ export class OrdersService {
     );
 
     return {
-      total,
-      byStatus: statusCounts,
+      totalOrders: total,
+      placedOrders: statusCounts[OrderStatus.PLACED] || 0,
+      printingOrders: statusCounts[OrderStatus.PRINTING] || 0,
+      readyOrders: statusCounts[OrderStatus.READY] || 0,
+      completedOrders: statusCounts[OrderStatus.COMPLETED] || 0,
+      cancelledOrders: statusCounts[OrderStatus.CANCELLED] || 0,
+      totalRevenue: revenueResult._sum.totalCost || 0,
     };
   }
 }
