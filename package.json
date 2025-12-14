@@ -6,12 +6,20 @@
   "scripts": {
     "dev": "pnpm dev:frontend & pnpm dev:backend",
     "dev:frontend": "pnpm --filter @swift-prints/frontend dev",
-    "dev:backend": "cd apps/backend && python3 -m uvicorn main:app --reload --host 0.0.0.0 --port ${PORT:-3001}",
+    "dev:backend": "pnpm --filter @swift-prints/backend start:dev",
     "build": "pnpm build:frontend && pnpm build:backend",
     "build:frontend": "pnpm --filter @swift-prints/frontend build",
-    "build:backend": "cd apps/backend && python3 -m compileall .",
-    "lint": "pnpm --filter @swift-prints/frontend lint",
-    "type-check": "pnpm --filter @swift-prints/frontend type-check"
+    "build:backend": "pnpm --filter @swift-prints/backend build",
+    "lint": "pnpm --filter @swift-prints/frontend lint && pnpm --filter @swift-prints/backend lint",
+    "type-check": "pnpm --filter @swift-prints/frontend type-check",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "db:migrate": "pnpm --filter @swift-prints/backend prisma:migrate",
+    "db:generate": "pnpm --filter @swift-prints/backend prisma:generate",
+    "db:studio": "pnpm --filter @swift-prints/backend prisma:studio",
+    "db:seed": "pnpm --filter @swift-prints/backend seed",
+    "docker:dev": "docker-compose --profile dev up -d"
   },
   "devDependencies": {
     "pnpm": "^8.15.0"

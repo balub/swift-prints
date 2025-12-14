@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -11,6 +12,9 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Global API prefix with version
+  app.setGlobalPrefix('v1/api');
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
@@ -20,10 +24,38 @@ async function bootstrap() {
     }),
   );
 
+  // Swagger/OpenAPI setup
+  const config = new DocumentBuilder()
+    .setTitle('Swift Prints API')
+    .setDescription(
+      'API for 3D printing order management - upload STL files, get pricing estimates, and manage print orders',
+    )
+    .setVersion('1.0.0')
+    .addServer('/v1/api', 'API v1')
+    .addTag('Health', 'Health check endpoints')
+    .addTag('Uploads', 'STL file upload and analysis')
+    .addTag('Pricing', 'Price estimation endpoints')
+    .addTag('Printers', 'Printer and filament information (public)')
+    .addTag('Orders', 'Order management (participant)')
+    .addTag('Admin - Orders', 'Order management (admin)')
+    .addTag('Admin - Printers', 'Printer and filament management (admin)')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('v1/api/docs', app, document, {
+    jsonDocumentUrl: '/v1/api/docs/openapi.json',
+    useGlobalPrefix: false,
+  });
+
   const port = process.env.PORT || 3001;
   await app.listen(port);
   console.log(`🚀 Swift Prints backend running on http://localhost:${port}`);
+  console.log(
+    `📚 Swagger UI available at http://localhost:${port}/v1/api/docs`,
+  );
+  console.log(
+    `📄 OpenAPI JSON available at http://localhost:${port}/v1/api/docs/openapi.json`,
+  );
 }
 
 bootstrap();
-

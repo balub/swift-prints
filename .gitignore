@@ -97,5 +97,11 @@ venv/
 # Local storage uploads
 apps/backend/uploads/
 
+# Generated OpenAPI specs
+apps/backend/openapi.json
+apps/backend/openapi.yaml
+
 # Documentation
 SYSTEM_OVERVIEW.md
+
+.cursor/

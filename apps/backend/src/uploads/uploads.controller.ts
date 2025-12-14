@@ -8,18 +8,51 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { UploadsService } from './uploads.service';
 import { UploadResponseDto } from './dto/upload-response.dto';
 
+@ApiTags('Uploads')
 @Controller('uploads')
 export class UploadsController {
   constructor(private uploadsService: UploadsService) {}
 
-  /**
-   * POST /uploads/analyze
-   * Upload and analyze an STL file
-   */
   @Post('analyze')
+  @ApiOperation({
+    summary: 'Upload and analyze STL file',
+    description:
+      'Upload an STL file for analysis. Returns volume, bounding box, and base print estimates.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'STL file to upload (max 50MB)',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'File uploaded and analyzed successfully',
+    type: UploadResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid file or no file uploaded',
+  })
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
@@ -51,11 +84,18 @@ export class UploadsController {
     return this.uploadsService.analyzeAndStore(file);
   }
 
-  /**
-   * GET /uploads/:uploadId
-   * Get upload details
-   */
   @Get(':uploadId')
+  @ApiOperation({
+    summary: 'Get upload details',
+    description: 'Retrieve details of a previously uploaded STL file',
+  })
+  @ApiParam({ name: 'uploadId', description: 'Upload ID', format: 'uuid' })
+  @ApiResponse({
+    status: 200,
+    description: 'Upload details',
+    type: UploadResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Upload not found' })
   async getUpload(@Param('uploadId') uploadId: string) {
     const upload = await this.uploadsService.getById(uploadId);
     return {
@@ -76,11 +116,14 @@ export class UploadsController {
     };
   }
 
-  /**
-   * GET /uploads/:uploadId/download
-   * Get signed download URL for the STL file
-   */
   @Get(':uploadId/download')
+  @ApiOperation({
+    summary: 'Get download URL',
+    description: 'Get a signed URL to download the STL file',
+  })
+  @ApiParam({ name: 'uploadId', description: 'Upload ID', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Download URL' })
+  @ApiResponse({ status: 404, description: 'Upload not found' })
   async getDownloadUrl(@Param('uploadId') uploadId: string) {
     const url = await this.uploadsService.getDownloadUrl(uploadId);
     return { downloadUrl: url };

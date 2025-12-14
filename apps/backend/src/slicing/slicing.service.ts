@@ -22,8 +22,6 @@ export class SlicingService {
   private readonly logger = new Logger(SlicingService.name);
   private readonly jobsPath: string;
   private readonly configPath: string;
-  private readonly slicerContainer: string;
-  private readonly useDocker: boolean;
 
   constructor(private configService: ConfigService) {
     this.jobsPath = this.configService.get<string>(
@@ -34,13 +32,9 @@ export class SlicingService {
       'SLICER_CONFIG_PATH',
       '/config',
     );
-    this.slicerContainer = this.configService.get<string>(
-      'SLICER_CONTAINER',
-      'swiftprints-slicer',
-    );
-    this.useDocker = this.configService.get<string>('NODE_ENV') !== 'test';
 
     this.logger.log(`Slicer jobs path: ${this.jobsPath}`);
+    this.logger.log(`Slicer config path: ${this.configPath}`);
   }
 
   /**
@@ -86,7 +80,7 @@ export class SlicingService {
       // Cleanup job directory
       try {
         await fs.rm(jobDir, { recursive: true, force: true });
-      } catch (e) {
+      } catch {
         this.logger.warn(`Failed to cleanup job directory: ${jobDir}`);
       }
     }
@@ -107,18 +101,18 @@ export class SlicingService {
       `${options.infill}%`,
     ];
 
-    // Support settings
+    // Support settings - use = syntax for boolean options
     switch (options.supports) {
       case 'none':
-        args.push('--support-material', '0');
+        args.push('--support-material=0');
         break;
       case 'auto':
-        args.push('--support-material', '1');
-        args.push('--support-material-auto', '1');
+        args.push('--support-material=1');
+        args.push('--support-material-auto=1');
         break;
       case 'everywhere':
-        args.push('--support-material', '1');
-        args.push('--support-material-auto', '0');
+        args.push('--support-material=1');
+        args.push('--support-material-auto=0');
         break;
     }
 
@@ -133,38 +127,26 @@ export class SlicingService {
 
   private async runSlicer(args: string[], workDir: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      let cmd: string;
-      let cmdArgs: string[];
+      const cmd = 'prusa-slicer';
 
-      if (this.useDocker) {
-        // Run via docker exec
-        cmd = 'docker';
-        cmdArgs = ['exec', this.slicerContainer, 'prusa-slicer', ...args];
-      } else {
-        // Direct execution (for testing)
-        cmd = 'prusa-slicer';
-        cmdArgs = args;
-      }
+      this.logger.debug(`Running: ${cmd} ${args.join(' ')}`);
 
-      this.logger.debug(`Running: ${cmd} ${cmdArgs.join(' ')}`);
-
-      const process = spawn(cmd, cmdArgs, {
+      const slicerProcess = spawn(cmd, args, {
         cwd: workDir,
         stdio: ['ignore', 'pipe', 'pipe'],
       });
 
-      let stdout = '';
       let stderr = '';
 
-      process.stdout?.on('data', (data) => {
-        stdout += data.toString();
+      slicerProcess.stdout?.on('data', (data) => {
+        this.logger.debug(`Slicer stdout: ${data.toString()}`);
       });
 
-      process.stderr?.on('data', (data) => {
+      slicerProcess.stderr?.on('data', (data) => {
         stderr += data.toString();
       });
 
-      process.on('close', (code) => {
+      slicerProcess.on('close', (code) => {
         if (code === 0) {
           resolve();
         } else {
@@ -177,16 +159,19 @@ export class SlicingService {
         }
       });
 
-      process.on('error', (err) => {
+      slicerProcess.on('error', (err) => {
         this.logger.error(`Slicer process error: ${err.message}`);
         reject(new BadRequestException(`Slicing failed: ${err.message}`));
       });
 
       // Timeout after 5 minutes
-      setTimeout(() => {
-        process.kill();
-        reject(new BadRequestException('Slicing timed out'));
-      }, 5 * 60 * 1000);
+      setTimeout(
+        () => {
+          slicerProcess.kill();
+          reject(new BadRequestException('Slicing timed out'));
+        },
+        5 * 60 * 1000,
+      );
     });
   }
 
@@ -228,8 +213,7 @@ export class SlicingService {
         const hours = parseInt(timeMatch[2] || '0');
         const minutes = parseInt(timeMatch[3] || '0');
         const seconds = parseInt(timeMatch[4] || '0');
-        printTimeSeconds =
-          days * 86400 + hours * 3600 + minutes * 60 + seconds;
+        printTimeSeconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
       }
     }
 
@@ -247,4 +231,3 @@ export class SlicingService {
     };
   }
 }
-

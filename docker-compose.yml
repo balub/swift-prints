@@ -1,0 +1,118 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: swiftprints-db
+    environment:
+      POSTGRES_USER: swiftprints
+      POSTGRES_PASSWORD: swiftprints
+      POSTGRES_DB: swiftprints
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swiftprints"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: swiftprints-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: swiftprints-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 minio minio123;
+      mc mb myminio/swiftprints --ignore-existing;
+      mc anonymous set download myminio/swiftprints;
+      exit 0;
+      "
+
+  # Development backend - with volume mounts for hot reload
+  backend-dev:
+    profiles:
+      - dev
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: swiftprints-backend
+    command: npm run start:dev
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgres://swiftprints:swiftprints@db:5432/swiftprints
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minio
+      S3_SECRET_KEY: minio123
+      S3_BUCKET: swiftprints
+      S3_REGION: us-east-1
+      SLICER_JOBS_PATH: /tmp/slicer_jobs
+      SLICER_CONFIG_PATH: /config
+      CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./apps/backend/src:/app/src
+      - ./apps/backend/prisma:/app/prisma
+
+  # Production backend - no volume mounts, optimized
+  backend-prod:
+    profiles:
+      - prod
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: swiftprints-backend
+    command: npm run start:prod
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgres://swiftprints:swiftprints@db:5432/swiftprints
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minio
+      S3_SECRET_KEY: minio123
+      S3_BUCKET: swiftprints
+      S3_REGION: us-east-1
+      SLICER_JOBS_PATH: /tmp/slicer_jobs
+      SLICER_CONFIG_PATH: /config
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:
+  miniodata:
