@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Upload {
+  id                    String   @id @default(uuid())
+  filename              String
+  stlKey                String
+  volumeMm3             Float
+  boundingBoxX          Float
+  boundingBoxY          Float
+  boundingBoxZ          Float
+  needsSupports         Boolean  @default(false)
+  baseFilamentEstimateG Float
+  basePrintTimeHours    Float
+  createdAt             DateTime @default(now())
+  orders                Order[]
+
+  @@index([createdAt])
+}
+
+model Printer {
+  id         String            @id @default(uuid())
+  name       String
+  hourlyRate Float
+  isActive   Boolean           @default(true)
+  filaments  FilamentPricing[]
+  orders     Order[]
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([isActive])
+}
+
+model FilamentPricing {
+  id           String  @id @default(uuid())
+  printer      Printer @relation(fields: [printerId], references: [id], onDelete: Cascade)
+  printerId    String
+  filamentType String // e.g., "pla", "petg", "abs"
+  name         String // e.g., "PLA", "PETG", "ABS"
+  pricePerGram Float
+  isActive     Boolean @default(true)
+  orders       Order[]
+
+  @@unique([printerId, filamentType])
+  @@index([printerId])
+}
+
+model Order {
+  id         String          @id @default(uuid())
+  upload     Upload          @relation(fields: [uploadId], references: [id])
+  uploadId   String
+  printer    Printer         @relation(fields: [printerId], references: [id])
+  printerId  String
+  filament   FilamentPricing @relation(fields: [filamentId], references: [id])
+  filamentId String
+
+  // Participant info
+  teamNumber       String
+  participantName  String
+  participantEmail String
+
+  // Cost
+  totalCost Float
+
+  // Status
+  status OrderStatus @default(PLACED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([teamNumber])
+  @@index([createdAt])
+}
+
+enum OrderStatus {
+  PLACED
+  PRINTING
+  READY
+  COMPLETED
+  CANCELLED
+}
