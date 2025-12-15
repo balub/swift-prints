@@ -19,7 +19,23 @@ swift-prints/
 
 - Node.js (version 18 or higher)
 - pnpm (version 8 or higher)
-- Python 3.10 or higher (for the backend)
+- Docker and Docker Compose (for running services)
+
+### Environment Setup
+
+1. Copy the example environment file:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Copy the frontend environment file:
+
+   ```bash
+   cp apps/frontend-hack/.env.example apps/frontend-hack/.env
+   ```
+
+3. Edit `.env` files as needed for your environment. The root `.env` file is used by Docker Compose for all services.
 
 ### Installation
 
@@ -81,18 +97,49 @@ pnpm lint
 
 ### Backend (`apps/backend`)
 
-- **Framework**: FastAPI (Python)
+- **Framework**: NestJS (Node.js/TypeScript)
 - **Port**: 3001 (development)
-- **Features**: Minimal service exposing `/health` and `/ping`
-- **Development**: `cd apps/backend && pip install -r requirements.txt && uvicorn main:app --reload`
+- **Database**: PostgreSQL
+- **Storage**: MinIO (S3-compatible)
+- **Development**: Uses Docker Compose with hot reload
+
+## Docker Development
+
+Start all services (database, MinIO, backend) using Docker Compose:
+
+```bash
+# Development mode
+docker compose --profile dev up -d
+
+# Production mode
+docker compose --profile prod up -d
+```
+
+Stop services:
+
+```bash
+docker compose --profile dev down
+```
 
 ## Available Scripts
 
 - `dev` - Start all applications in development mode
 - `dev:frontend` - Start only the frontend
-- `dev:backend` - Start only the backend
+- `dev:frontend-hack` - Start the hackathon frontend
 - `build` - Build all applications
 - `build:frontend` - Build only the frontend
 - `build:backend` - Build only the backend
 - `lint` - Run linting for all workspaces
 - `type-check` - Run TypeScript type checking for all workspaces
+
+## Environment Variables
+
+All environment variables are configured in the root `.env` file. See `.env.example` for a template with default values.
+
+Key variables:
+
+- `DATABASE_URL` - PostgreSQL connection string
+- `S3_*` - MinIO/S3 configuration
+- `ADMIN_USERNAME` / `ADMIN_PASSWORD` - Admin login credentials
+- `JWT_SECRET` - JWT token secret key
+- `CORS_ORIGIN` - Allowed CORS origins (comma-separated)
