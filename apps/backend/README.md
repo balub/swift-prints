@@ -76,6 +76,11 @@ CORS_ORIGIN=http://localhost:5173
 SLICER_CONTAINER=swiftprints-slicer
 SLICER_JOBS_PATH=/tmp/slicer_jobs
 SLICER_CONFIG_PATH=/config
+
+# Email (Resend)
+# If RESEND_API_KEY is not set, emails will be logged to console (mock mode)
+RESEND_API_KEY=re_xxxxxxxxxxxxx
+RESEND_FROM_EMAIL=noreply@yourdomain.com
 ```
 
 ## API Endpoints
@@ -145,7 +150,7 @@ src/
 ├── printers/              # Printer management
 ├── orders/                # Order lifecycle
 ├── admin/                 # Organizer routes
-└── email/                 # Email notifications (mock)
+└── email/                 # Email notifications (Resend integration)
 ```
 
 ## Docker
