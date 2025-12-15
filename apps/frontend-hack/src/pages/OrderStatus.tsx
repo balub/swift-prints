@@ -1,7 +1,17 @@
+import { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Package,
@@ -12,8 +22,9 @@ import {
   Loader2,
   PartyPopper,
   XCircle,
+  Trash2,
 } from "lucide-react";
-import { useOrder, type OrderStatus as OrderStatusType } from "@/services";
+import { useOrder, useCancelOrder, type OrderStatus as OrderStatusType } from "@/services";
 
 const statusConfig: Record<
   OrderStatusType,
@@ -56,8 +67,30 @@ const OrderStatus = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isNewOrder = location.state?.newOrder;
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   const { data: order, isLoading, error } = useOrder(orderId);
+  const cancelOrderMutation = useCancelOrder();
+
+  const canCancel = order && (order.status === "PLACED" || order.status === "PRINTING");
+
+  const handleCancelOrder = () => {
+    if (!orderId) return;
+    
+    cancelOrderMutation.mutate(orderId, {
+      onSuccess: () => {
+        toast.success("Order cancelled successfully");
+        setShowCancelDialog(false);
+        // Refetch order to update status
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      },
+      onError: (error: Error) => {
+        toast.error(error.message || "Failed to cancel order");
+      },
+    });
+  };
 
   if (isLoading) {
     return (
@@ -275,7 +308,7 @@ const OrderStatus = () => {
         </div>
 
         {/* Actions */}
-        <div className="mt-8 flex justify-center gap-4">
+        <div className="mt-8 flex justify-center gap-4 flex-wrap">
           <Button variant="outline" onClick={() => navigate("/")}>
             <Package className="w-4 h-4 mr-2" />
             New Order
@@ -284,7 +317,65 @@ const OrderStatus = () => {
             <Clock className="w-4 h-4 mr-2" />
             Refresh Status
           </Button>
+          {canCancel && (
+            <Button
+              variant="destructive"
+              onClick={() => setShowCancelDialog(true)}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Cancel Order
+            </Button>
+          )}
         </div>
+
+        {/* Cancel Confirmation Dialog */}
+        <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cancel Order</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to cancel this order? This action cannot be undone.
+                {order && (
+                  <div className="mt-4 p-3 bg-muted rounded-lg">
+                    <p className="text-sm font-medium mb-1">Order Details:</p>
+                    <p className="text-sm text-text-muted">
+                      Order ID: {order.orderId.slice(0, 8)}...
+                    </p>
+                    <p className="text-sm text-text-muted">
+                      Total Cost: ₹{order.totalCost.toFixed(2)}
+                    </p>
+                  </div>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowCancelDialog(false)}
+                disabled={cancelOrderMutation.isPending}
+              >
+                Keep Order
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleCancelOrder}
+                disabled={cancelOrderMutation.isPending}
+              >
+                {cancelOrderMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Cancelling...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Yes, Cancel Order
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

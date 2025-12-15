@@ -3,22 +3,45 @@
 export const API_BASE =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/v1/api";
 
+// Get stored auth token
+function getAuthToken(): string | null {
+  return localStorage.getItem("swift_prints_admin_token");
+}
+
 // Base fetch wrapper with error handling
 export async function apiRequest<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
+  
+  // Auto-add auth header for admin endpoints
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...options?.headers,
+  };
+  
+  if (endpoint.startsWith("/admin")) {
+    const token = getAuthToken();
+    if (token) {
+      (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+    }
+  }
 
   const res = await fetch(url, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
+    headers,
   });
 
   if (!res.ok) {
+    // Handle 401 for admin routes - redirect to login
+    if (res.status === 401 && endpoint.startsWith("/admin")) {
+      localStorage.removeItem("swift_prints_admin_token");
+      localStorage.removeItem("swift_prints_admin_user");
+      window.location.href = "/admin/login";
+      throw new Error("Session expired. Please login again.");
+    }
+    
     const error = await res.json().catch(() => ({ message: "Request failed" }));
     throw new Error(error.message || `Request failed with status ${res.status}`);
   }

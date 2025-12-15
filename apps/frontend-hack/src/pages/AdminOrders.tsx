@@ -12,17 +12,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Search,
   Filter,
-  Eye,
+  Download,
   Package,
   Printer,
   CheckCircle,
@@ -30,10 +30,14 @@ import {
   Clock,
   Loader2,
   RefreshCw,
+  Copy,
+  Check,
 } from "lucide-react";
 import {
   useAdminOrders,
   useUpdateOrderStatus,
+  useAdminOrder,
+  getDownloadUrl,
   type OrderStatus,
   type AdminOrderListItem,
 } from "@/services";
@@ -53,8 +57,9 @@ const AdminOrders = () => {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [teamFilter, setTeamFilter] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState<AdminOrderListItem | null>(null);
-  const [newStatus, setNewStatus] = useState<OrderStatus | "">("");
+  const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
+  const [downloadingOrderId, setDownloadingOrderId] = useState<string | null>(null);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   const { data: orders, isLoading, refetch } = useAdminOrders({
     status: statusFilter === "all" ? undefined : statusFilter,
@@ -63,18 +68,68 @@ const AdminOrders = () => {
 
   const updateStatusMutation = useUpdateOrderStatus();
 
-  const handleUpdateStatus = () => {
-    if (selectedOrder && newStatus) {
-      updateStatusMutation.mutate(
-        { orderId: selectedOrder.orderId, status: newStatus },
-        {
-          onSuccess: () => {
-            setSelectedOrder(null);
-            setNewStatus("");
-          },
-        }
-      );
+  const handleCopyOrderId = (orderId: string) => {
+    navigator.clipboard.writeText(orderId);
+    setCopiedOrderId(orderId);
+    toast.success("Order ID copied to clipboard!");
+    setTimeout(() => setCopiedOrderId(null), 2000);
+  };
+
+  const handleDownloadFile = async (orderId: string) => {
+    setDownloadingOrderId(orderId);
+    try {
+      // Get full order details to access uploadId
+      const { getAdminOrder } = await import("@/services");
+      const orderDetails = await getAdminOrder(orderId);
+      
+      if (!orderDetails.uploadId) {
+        toast.error("File not available for download");
+        setDownloadingOrderId(null);
+        return;
+      }
+      
+      const downloadData = await getDownloadUrl(orderDetails.uploadId);
+      
+      if (!downloadData.url) {
+        toast.error("Download URL not available");
+        setDownloadingOrderId(null);
+        return;
+      }
+      
+      // Create a temporary link to trigger download
+      const link = document.createElement("a");
+      link.href = downloadData.url;
+      link.download = orderDetails.filename || "file.stl";
+      link.target = "_blank"; // Open in new tab as fallback
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success(`Downloading ${orderDetails.filename || "file"}...`);
+    } catch (error) {
+      console.error("Download error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to download file";
+      toast.error(errorMessage);
+    } finally {
+      setDownloadingOrderId(null);
     }
+  };
+
+  const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
+    setUpdatingOrderId(orderId);
+    updateStatusMutation.mutate(
+      { orderId, status: newStatus },
+      {
+        onSuccess: () => {
+          toast.success("Order status updated");
+          setUpdatingOrderId(null);
+        },
+        onError: () => {
+          toast.error("Failed to update status");
+          setUpdatingOrderId(null);
+        },
+      }
+    );
   };
 
   return (
@@ -138,178 +193,161 @@ const AdminOrders = () => {
         </Card>
 
         {/* Orders List */}
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : orders && orders.length > 0 ? (
-          <div className="space-y-4">
-            {orders.map((order) => {
-              const status = statusConfig[order.status];
-              return (
-                <Card key={order.orderId} className="hover:border-primary/50 transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Badge className={`${status.bgColor} ${status.color} border-0`}>
-                            {status.label}
-                          </Badge>
-                          <span className="text-sm text-text-muted">
-                            {order.orderId.slice(0, 8)}...
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                          <div>
-                            <span className="text-text-muted">Team:</span>{" "}
-                            <span className="font-medium">{order.teamNumber}</span>
-                          </div>
-                          <div>
-                            <span className="text-text-muted">Name:</span>{" "}
-                            <span className="font-medium">{order.participantName}</span>
-                          </div>
-                          <div>
-                            <span className="text-text-muted">File:</span>{" "}
-                            <span className="font-medium truncate">{order.filename}</span>
-                          </div>
-                          <div>
-                            <span className="text-text-muted">Total:</span>{" "}
-                            <span className="font-bold text-primary">₹{order.totalCost.toFixed(2)}</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-text-muted mt-2">
-                          Ordered: {new Date(order.createdAt).toLocaleString()}
-                        </p>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/orders/${order.orderId}`)}
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setNewStatus(order.status);
-                          }}
-                        >
-                          Update Status
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Package className="w-16 h-16 text-text-muted mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-text-primary mb-2">No Orders Found</h3>
-              <p className="text-text-muted">
-                {statusFilter !== "all" || teamFilter
-                  ? "Try adjusting your filters"
-                  : "Orders will appear here when customers place them"}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Update Status Dialog */}
-        <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Update Order Status</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              {selectedOrder && (
-                <div className="space-y-4">
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-sm">
-                      <span className="text-text-muted">Order ID:</span>{" "}
-                      <span className="font-mono">{selectedOrder.orderId.slice(0, 8)}...</span>
-                    </p>
-                    <p className="text-sm">
-                      <span className="text-text-muted">Team:</span>{" "}
-                      <span className="font-medium">{selectedOrder.teamNumber}</span>
-                    </p>
-                    <p className="text-sm">
-                      <span className="text-text-muted">Current Status:</span>{" "}
-                      <Badge className={`${statusConfig[selectedOrder.status].bgColor} ${statusConfig[selectedOrder.status].color} border-0`}>
-                        {statusConfig[selectedOrder.status].label}
-                      </Badge>
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">New Status</label>
-                    <Select value={newStatus} onValueChange={(val) => setNewStatus(val as OrderStatus)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="PLACED">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-blue-600" />
-                            Placed
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="PRINTING">
-                          <div className="flex items-center gap-2">
-                            <Printer className="w-4 h-4 text-yellow-600" />
-                            Printing
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="READY">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-green-600" />
-                            Ready for Pickup
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="COMPLETED">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-primary" />
-                            Completed
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="CANCELLED">
-                          <div className="flex items-center gap-2">
-                            <XCircle className="w-4 h-4 text-red-600" />
-                            Cancelled
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
+        <TooltipProvider>
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setSelectedOrder(null)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleUpdateStatus}
-                disabled={!newStatus || updateStatusMutation.isPending}
-              >
-                {updateStatusMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  "Update Status"
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          ) : orders && orders.length > 0 ? (
+            <div className="space-y-4">
+              {orders.map((order) => {
+                const status = statusConfig[order.status];
+                const isUpdating = updatingOrderId === order.orderId;
+                return (
+                  <Card key={order.orderId} className="hover:border-primary/50 transition-colors">
+                    <CardContent className="p-4">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Badge className={`${status.bgColor} ${status.color} border-0`}>
+                              {status.label}
+                            </Badge>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm font-mono text-text-muted">
+                                {order.orderId.slice(0, 8)}...
+                              </span>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 hover:bg-primary/10"
+                                    onClick={() => handleCopyOrderId(order.orderId)}
+                                  >
+                                    {copiedOrderId === order.orderId ? (
+                                      <Check className="w-3.5 h-3.5 text-green-600" />
+                                    ) : (
+                                      <Copy className="w-3.5 h-3.5 text-text-muted hover:text-primary" />
+                                    )}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {copiedOrderId === order.orderId ? "Copied!" : "Copy Order ID"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                            <div>
+                              <span className="text-text-muted">Team:</span>{" "}
+                              <span className="font-medium">{order.teamNumber}</span>
+                            </div>
+                            <div>
+                              <span className="text-text-muted">Name:</span>{" "}
+                              <span className="font-medium">{order.participantName}</span>
+                            </div>
+                            <div>
+                              <span className="text-text-muted">File:</span>{" "}
+                              <span className="font-medium truncate">{order.filename}</span>
+                            </div>
+                            <div>
+                              <span className="text-text-muted">Total:</span>{" "}
+                              <span className="font-bold text-primary">₹{order.totalCost.toFixed(2)}</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-text-muted mt-2">
+                            Ordered: {new Date(order.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2 items-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadFile(order.orderId)}
+                            disabled={downloadingOrderId === order.orderId}
+                          >
+                            {downloadingOrderId === order.orderId ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                Downloading...
+                              </>
+                            ) : (
+                              <>
+                                <Download className="w-4 h-4 mr-1" />
+                                Download File
+                              </>
+                            )}
+                          </Button>
+                          <div className="relative">
+                            <Select
+                              value={order.status}
+                              onValueChange={(val) => handleStatusChange(order.orderId, val as OrderStatus)}
+                              disabled={isUpdating}
+                            >
+                              <SelectTrigger className="w-[160px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="PLACED">
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="w-4 h-4 text-blue-600" />
+                                    Placed
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="PRINTING">
+                                  <div className="flex items-center gap-2">
+                                    <Printer className="w-4 h-4 text-yellow-600" />
+                                    Printing
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="READY">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                    Ready
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="COMPLETED">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4 text-primary" />
+                                    Completed
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="CANCELLED">
+                                  <div className="flex items-center gap-2">
+                                    <XCircle className="w-4 h-4 text-red-600" />
+                                    Cancelled
+                                  </div>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {isUpdating && (
+                              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Package className="w-16 h-16 text-text-muted mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-text-primary mb-2">No Orders Found</h3>
+                <p className="text-text-muted">
+                  {statusFilter !== "all" || teamFilter
+                    ? "Try adjusting your filters"
+                    : "Orders will appear here when customers place them"}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TooltipProvider>
       </div>
     </div>
   );

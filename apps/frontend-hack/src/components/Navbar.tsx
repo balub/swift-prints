@@ -1,12 +1,18 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, X, Box, Sparkles, Settings } from "lucide-react";
+import { Menu, X, Box, Sparkles, Settings, LogOut } from "lucide-react";
+import { isAuthenticated, getStoredUser, useLogout } from "@/services";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const logout = useLogout();
+  
+  const isLoggedIn = isAuthenticated();
+  const user = getStoredUser();
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -17,6 +23,14 @@ const Navbar = () => {
     if (href === "/" && location.pathname === "/") return true;
     if (href !== "/" && location.pathname.startsWith(href)) return true;
     return false;
+  };
+
+  const handleAdminClick = () => {
+    if (isLoggedIn) {
+      navigate("/admin");
+    } else {
+      navigate("/admin/login");
+    }
   };
 
   return (
@@ -67,16 +81,41 @@ const Navbar = () => {
               <Sparkles className="w-3 h-3 mr-1" />
               Hackathon Mode
             </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-            >
-              <Link to="/admin" className="text-text-secondary hover:text-text-primary">
+            
+            {isLoggedIn ? (
+              <>
+                <span className="text-sm text-text-muted">
+                  {user?.username}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAdminClick}
+                  className="text-text-secondary hover:text-text-primary"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={logout}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleAdminClick}
+                className="text-text-secondary hover:text-text-primary"
+              >
                 <Settings className="w-4 h-4 mr-2" />
                 Admin
-              </Link>
-            </Button>
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -114,14 +153,28 @@ const Navbar = () => {
                   {item.name}
                 </Link>
               ))}
-              <Link
-                to="/admin"
-                className="block px-3 py-3 text-base font-medium rounded-lg transition-all duration-200 text-text-secondary hover:text-text-primary hover:bg-neutral-50"
-                onClick={() => setIsOpen(false)}
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  handleAdminClick();
+                }}
+                className="block w-full text-left px-3 py-3 text-base font-medium rounded-lg transition-all duration-200 text-text-secondary hover:text-text-primary hover:bg-neutral-50"
               >
                 <Settings className="w-4 h-4 inline mr-2" />
-                Admin Dashboard
-              </Link>
+                {isLoggedIn ? "Admin Dashboard" : "Admin Login"}
+              </button>
+              {isLoggedIn && (
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    logout();
+                  }}
+                  className="block w-full text-left px-3 py-3 text-base font-medium rounded-lg transition-all duration-200 text-destructive hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4 inline mr-2" />
+                  Logout
+                </button>
+              )}
             </div>
           </div>
         )}

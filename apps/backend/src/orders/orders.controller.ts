@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -45,6 +45,24 @@ export class OrdersController {
       filamentName: order.filament.name,
       totalCost: order.totalCost,
       createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    };
+  }
+
+  @Patch(':orderId/cancel')
+  @ApiOperation({
+    summary: 'Cancel order',
+    description: 'Cancel an order (only allowed for PLACED or PRINTING orders)',
+  })
+  @ApiParam({ name: 'orderId', description: 'Order ID', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Order cancelled successfully' })
+  @ApiResponse({ status: 400, description: 'Cannot cancel order with current status' })
+  @ApiResponse({ status: 404, description: 'Order not found' })
+  async cancel(@Param('orderId') orderId: string) {
+    const order = await this.ordersService.cancelOrder(orderId);
+    return {
+      orderId: order.id,
+      status: order.status,
       updatedAt: order.updatedAt,
     };
   }

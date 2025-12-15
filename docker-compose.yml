@@ -70,6 +70,11 @@ services:
       SLICER_JOBS_PATH: /tmp/slicer_jobs
       SLICER_CONFIG_PATH: /config
       CORS_ORIGIN: http://localhost:5173,http://localhost:8080,http://localhost:8081
+      # Auth settings
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin123
+      JWT_SECRET: swift-prints-jwt-secret-key-2024
+      JWT_EXPIRES_IN: 24h
     ports:
       - "3001:3001"
     depends_on:

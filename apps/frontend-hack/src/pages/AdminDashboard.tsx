@@ -129,18 +129,18 @@ const AdminDashboard = () => {
         {/* Quick Links */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Orders Management */}
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Package className="w-5 h-5 mr-2 text-primary" />
                 Orders Management
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 flex flex-col">
               <p className="text-text-muted mb-4">
                 View all orders, update status, and manage the print queue.
               </p>
-              <Button onClick={() => navigate("/admin/orders")} className="w-full">
+              <Button onClick={() => navigate("/admin/orders")} className="w-full mt-auto">
                 Manage Orders
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
@@ -148,29 +148,27 @@ const AdminDashboard = () => {
           </Card>
 
           {/* Printers Management */}
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Printer className="w-5 h-5 mr-2 text-primary" />
                 Printers & Filaments
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 flex flex-col">
               <p className="text-text-muted mb-4">
                 Add printers, manage filament options, and set pricing.
               </p>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm">
-                  {loadingPrinters ? (
-                    <Loader2 className="w-4 h-4 animate-spin inline" />
-                  ) : (
-                    <>
-                      <span className="font-bold text-primary">{printers?.length || 0}</span> printers configured
-                    </>
-                  )}
-                </span>
+              <div className="mb-4 text-sm text-text-muted">
+                {loadingPrinters ? (
+                  <Loader2 className="w-4 h-4 animate-spin inline" />
+                ) : (
+                  <>
+                    <span className="font-bold text-primary">{printers?.length || 0}</span> printers configured
+                  </>
+                )}
               </div>
-              <Button onClick={() => navigate("/admin/printers")} className="w-full">
+              <Button onClick={() => navigate("/admin/printers")} className="w-full mt-auto">
                 Manage Printers
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>

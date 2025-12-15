@@ -2,6 +2,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  BadRequestException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
@@ -135,6 +136,43 @@ export class OrdersService {
     );
 
     // Send status update email
+    await this.email.sendStatusUpdate(updated, previousStatus);
+
+    return updated;
+  }
+
+  /**
+   * Cancel an order (participant can cancel if status is PLACED or PRINTING)
+   */
+  async cancelOrder(orderId: string) {
+    const order = await this.findById(orderId);
+    const previousStatus = order.status;
+
+    // Only allow cancellation if order is PLACED or PRINTING
+    if (
+      order.status !== OrderStatus.PLACED &&
+      order.status !== OrderStatus.PRINTING
+    ) {
+      throw new BadRequestException(
+        `Cannot cancel order with status ${order.status}. Only PLACED or PRINTING orders can be cancelled.`,
+      );
+    }
+
+    const updated = await this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: OrderStatus.CANCELLED },
+      include: {
+        upload: true,
+        printer: true,
+        filament: true,
+      },
+    });
+
+    this.logger.log(
+      `Order ${orderId} cancelled by participant: ${previousStatus} -> CANCELLED`,
+    );
+
+    // Send cancellation email
     await this.email.sendStatusUpdate(updated, previousStatus);
 
     return updated;

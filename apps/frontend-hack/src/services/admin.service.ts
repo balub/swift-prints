@@ -45,20 +45,21 @@ export interface UpdateFilamentRequest {
 // Admin order response (full details)
 export interface AdminOrderResponse {
   orderId: string;
+  uploadId: string;
   status: OrderStatus;
   teamNumber: string;
   participantName: string;
   participantEmail: string;
   filename: string;
-  fileUrl: string;
-  printerId: string;
+  fileUrl?: string;
+  printerId?: string;
   printerName: string;
-  filamentId: string;
+  filamentId?: string;
   filamentName: string;
-  filamentUsedGrams: number;
-  printTimeHours: number;
-  materialCost: number;
-  machineTimeCost: number;
+  filamentUsedGrams?: number;
+  printTimeHours?: number;
+  materialCost?: number;
+  machineTimeCost?: number;
   totalCost: number;
   createdAt: string;
   updatedAt: string;

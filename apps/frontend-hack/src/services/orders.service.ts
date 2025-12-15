@@ -59,6 +59,12 @@ export async function getOrder(orderId: string): Promise<OrderResponse> {
   return res.json();
 }
 
+export async function cancelOrder(orderId: string): Promise<OrderResponse> {
+  return apiRequest<OrderResponse>(`/orders/${orderId}/cancel`, {
+    method: "PATCH",
+  });
+}
+
 // ============ React Query Hooks ============
 
 /**
@@ -86,6 +92,26 @@ export function useCreateOrder() {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
       // Also invalidate admin orders
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.orders.all });
+    },
+  });
+}
+
+/**
+ * Hook to cancel an order
+ */
+export function useCancelOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: cancelOrder,
+    onSuccess: (data, orderId) => {
+      // Invalidate the specific order
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.detail(orderId) });
+      // Invalidate orders list
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+      // Also invalidate admin orders
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.orders.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.orders.stats });
     },
   });
 }

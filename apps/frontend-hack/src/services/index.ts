@@ -9,4 +9,5 @@ export * from "./printers.service";
 export * from "./pricing.service";
 export * from "./orders.service";
 export * from "./admin.service";
+export * from "./auth.service";
 

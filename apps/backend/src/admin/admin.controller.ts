@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,6 +15,7 @@ import {
   ApiParam,
   ApiQuery,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { OrderStatus } from '@prisma/client';
 import { OrdersService } from '../orders/orders.service';
@@ -21,8 +23,11 @@ import { PrintersService } from '../printers/printers.service';
 import { UpdateOrderStatusDto } from '../orders/dto/update-order-status.dto';
 import { CreatePrinterDto, FilamentDto } from './dto/create-printer.dto';
 import { UpdatePrinterDto } from './dto/update-printer.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('admin')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class AdminController {
   constructor(
     private ordersService: OrdersService,
@@ -99,6 +104,7 @@ export class AdminController {
     const order = await this.ordersService.findById(orderId);
     return {
       orderId: order.id,
+      uploadId: order.uploadId,
       status: order.status,
       teamNumber: order.teamNumber,
       participantName: order.participantName,

@@ -10,6 +10,7 @@ import { PricingModule } from './pricing/pricing.module';
 import { OrdersModule } from './orders/orders.module';
 import { AdminModule } from './admin/admin.module';
 import { EmailModule } from './email/email.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EmailModule } from './email/email.module';
     OrdersModule,
     AdminModule,
     EmailModule,
+    AuthModule,
   ],
   controllers: [AppController],
 })
