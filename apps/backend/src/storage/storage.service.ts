@@ -13,51 +13,34 @@ import { Readable } from 'stream';
 export class StorageService {
   private readonly logger = new Logger(StorageService.name);
   private readonly s3Client: S3Client;
-  private readonly s3ClientPublic: S3Client;
   private readonly bucket: string;
-  private readonly publicEndpoint: string;
 
   constructor(private configService: ConfigService) {
     const endpoint = this.configService.get<string>('S3_ENDPOINT');
-    const accessKey = this.configService.get<string>('S3_ACCESS_KEY');
-    const secretKey = this.configService.get<string>('S3_SECRET_KEY');
+    const accessKey = this.configService.get<string>('S3_ACCESS_KEY', 'test');
+    const secretKey = this.configService.get<string>('S3_SECRET_KEY', 'test');
     const region = this.configService.get<string>('S3_REGION', 'us-east-1');
-    // Public endpoint for browser-accessible URLs (defaults to localhost:9000 for dev)
-    this.publicEndpoint = this.configService.get<string>(
-      'S3_PUBLIC_ENDPOINT',
-      'http://localhost:9000',
-    );
 
     this.bucket = this.configService.get<string>('S3_BUCKET', 'swiftprints');
 
-    // Internal S3 client for uploads/downloads within Docker network
     this.s3Client = new S3Client({
-      endpoint,
+      endpoint: endpoint || undefined, // LocalStack needs endpoint, AWS S3 uses default
       region,
       credentials: {
-        accessKeyId: accessKey || 'minio',
-        secretAccessKey: secretKey || 'minio123',
+        accessKeyId: accessKey,
+        secretAccessKey: secretKey,
       },
-      forcePathStyle: true, // Required for MinIO
+      forcePathStyle: !!endpoint, // Use path-style for LocalStack, virtual-hosted for AWS S3
     });
 
-    // Public S3 client for generating browser-accessible signed URLs
-    this.s3ClientPublic = new S3Client({
-      endpoint: this.publicEndpoint,
-      region,
-      credentials: {
-        accessKeyId: accessKey || 'minio',
-        secretAccessKey: secretKey || 'minio123',
-      },
-      forcePathStyle: true,
-    });
-
-    this.logger.log(`Storage initialized with endpoint: ${endpoint}`);
-    this.logger.log(`Public endpoint for downloads: ${this.publicEndpoint}`);
+    const storageType = endpoint ? 'LocalStack' : 'AWS S3';
+    this.logger.log(
+      `Storage initialized: ${storageType} (${endpoint || region})`,
+    );
   }
 
   /**
-   * Upload a file to S3/MinIO
+   * Upload a file to S3
    */
   async uploadFile(
     key: string,
@@ -89,8 +72,32 @@ export class StorageService {
       Key: key,
     });
 
-    // Use public S3 client to generate browser-accessible URLs
-    const url = await getSignedUrl(this.s3ClientPublic, command, { expiresIn });
+    const url = await getSignedUrl(this.s3Client, command, { expiresIn });
+
+    // For LocalStack, replace internal endpoint with public endpoint if configured
+    const publicEndpoint = this.configService.get<string>('S3_PUBLIC_ENDPOINT');
+    const internalEndpoint = this.configService.get<string>('S3_ENDPOINT');
+
+    if (publicEndpoint && internalEndpoint) {
+      try {
+        const urlObj = new URL(url);
+        const internalUrlObj = new URL(internalEndpoint);
+        const publicUrlObj = new URL(publicEndpoint);
+
+        // Replace host if it matches the internal endpoint
+        if (
+          urlObj.hostname === internalUrlObj.hostname ||
+          urlObj.host === internalUrlObj.host
+        ) {
+          urlObj.host = publicUrlObj.host;
+          urlObj.protocol = publicUrlObj.protocol;
+          return urlObj.toString();
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to replace endpoint in URL: ${error.message}`);
+      }
+    }
+
     return url;
   }
 
@@ -109,11 +116,36 @@ export class StorageService {
     });
 
     const url = await getSignedUrl(this.s3Client, command, { expiresIn });
+
+    // For LocalStack, replace internal endpoint with public endpoint if configured
+    const publicEndpoint = this.configService.get<string>('S3_PUBLIC_ENDPOINT');
+    const internalEndpoint = this.configService.get<string>('S3_ENDPOINT');
+
+    if (publicEndpoint && internalEndpoint) {
+      try {
+        const urlObj = new URL(url);
+        const internalUrlObj = new URL(internalEndpoint);
+        const publicUrlObj = new URL(publicEndpoint);
+
+        // Replace host if it matches the internal endpoint
+        if (
+          urlObj.hostname === internalUrlObj.hostname ||
+          urlObj.host === internalUrlObj.host
+        ) {
+          urlObj.host = publicUrlObj.host;
+          urlObj.protocol = publicUrlObj.protocol;
+          return urlObj.toString();
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to replace endpoint in URL: ${error.message}`);
+      }
+    }
+
     return url;
   }
 
   /**
-   * Download a file from S3/MinIO
+   * Download a file from S3
    */
   async downloadFile(key: string): Promise<Buffer> {
     const command = new GetObjectCommand({
@@ -128,7 +160,7 @@ export class StorageService {
   }
 
   /**
-   * Delete a file from S3/MinIO
+   * Delete a file from S3
    */
   async deleteFile(key: string): Promise<void> {
     const command = new DeleteObjectCommand({
@@ -162,4 +194,3 @@ export class StorageService {
     return Buffer.concat(chunks);
   }
 }
-
