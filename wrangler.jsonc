@@ -1,0 +1,10 @@
+{
+  "//": "Cloudflare Workers / Pages configuration for deploying the frontend-hack app from the repo root",
+  "name": "swift-prints-frontend-hack",
+  "compatibility_date": "2025-12-18",
+  "assets": {
+    "directory": "./apps/frontend-hack/dist"
+  }
+}
+
+
