@@ -1,44 +1,48 @@
-FROM python:3.11-slim
+FROM ubuntu:24.04
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Set work directory
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        build-essential \
-        curl \
-        libpq-dev \
-        libmagic1 \
-        docker.io \
+# Install Node.js 20.x and PrusaSlicer with dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    gnupg \
+    # PrusaSlicer dependencies
+    prusa-slicer \
+    libglu1-mesa \
+    libgtk-3-0 \
+    libdbus-1-3 \
+    xvfb \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Node.js 20.x
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy application code
+WORKDIR /app
+
+# Copy slicer config
+COPY slicer-config/ /config/
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy prisma schema and generate client
+COPY prisma ./prisma/
+RUN npx prisma generate
+
+# Copy source code
 COPY . .
 
-# Create directories for uploads, logs, and temp files
-RUN mkdir -p /app/uploads /app/logs /app/temp
+# Build the application
+RUN npm run build
 
-# Create non-root user
-RUN adduser --disabled-password --gecos '' appuser \
-    && chown -R appuser:appuser /app
-USER appuser
+# Create slicer jobs directory
+RUN mkdir -p /tmp/slicer_jobs
 
-# Expose port
-EXPOSE 8000
+EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["npm", "run", "start:prod"]

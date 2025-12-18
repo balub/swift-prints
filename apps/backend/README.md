@@ -1,167 +1,164 @@
 # Swift Prints Backend
 
-A comprehensive FastAPI backend for the Swift Prints 3D printing marketplace platform. This backend provides STL file processing, maker management, order processing, real-time pricing, and user authentication.
-
-## Features
-
-- **STL File Processing**: Upload and analyze 3D models using PrusaSlicer
-- **Two-Phase Upload**: Secure file upload with local and S3 storage support
-- **Maker Management**: Registration, verification, and inventory management
-- **Order Processing**: Complete order lifecycle management
-- **Real-time Pricing**: Dynamic pricing engine with Redis caching
-- **Authentication**: Supabase Auth integration with JWT tokens
-- **WebSocket Support**: Real-time updates and notifications
-- **Database**: SQLAlchemy with SQLite/PostgreSQL support
-- **Docker Integration**: Containerized PrusaSlicer for STL analysis
+NestJS backend for the Swift Prints 3D printing platform.
 
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.10+
-- Redis (for caching)
-- PostgreSQL (for production) or SQLite (for development)
-- Docker (for PrusaSlicer integration)
+- Node.js 18+
+- Docker & Docker Compose
+- pnpm
 
-### Installation
+### Development Setup
 
-1. **Clone and navigate to backend directory**:
+1. **Start infrastructure services:**
 
-   ```bash
-   cd apps/backend
-   ```
+```bash
+# From project root
+docker-compose up -d db minio minio-init slicer
+```
 
-2. **Install dependencies**:
+2. **Install dependencies:**
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+cd apps/backend
+pnpm install
+```
 
-3. **Set up environment**:
+3. **Generate Prisma client:**
 
-   ```bash
-   python scripts/dev_setup.py
-   ```
+```bash
+pnpm prisma:generate
+```
 
-4. **Configure environment variables**:
+4. **Run database migrations:**
 
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
+```bash
+pnpm prisma:migrate
+```
 
-5. **Start supporting services**:
+5. **Seed the database:**
 
-   ```bash
-   docker-compose -f docker-compose.dev.yml up -d
-   ```
+```bash
+pnpm seed
+```
 
-6. **Run database migrations**:
+6. **Start the dev server:**
 
-   ```bash
-   alembic upgrade head
-   ```
+```bash
+pnpm start:dev
+```
 
-7. **Build PrusaSlicer Docker image**:
+The backend will be available at http://localhost:3001
 
-   ```bash
-   python scripts/build_prusaslicer.py
-   ```
+### Environment Variables
 
-8. **Start Celery worker** (in a separate terminal):
+Create a `.env` file in this directory or the project root:
 
-   ```bash
-   python scripts/start_worker.py
-   ```
+```env
+# Database
+DATABASE_URL=postgres://swiftprints:swiftprints@localhost:5432/swiftprints
 
-9. **Start the development server**:
-   ```bash
-   uvicorn main:app --reload --host 0.0.0.0 --port 3001
-   ```
+# S3/MinIO Storage
+S3_ENDPOINT=http://localhost:9000
+S3_ACCESS_KEY=minio
+S3_SECRET_KEY=minio123
+S3_BUCKET=swiftprints
+S3_REGION=us-east-1
 
-The API will be available at `http://localhost:3001` with interactive documentation at `http://localhost:3001/docs`.
+# Backend
+PORT=3001
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:5173
+
+# Slicer
+SLICER_CONTAINER=swiftprints-slicer
+SLICER_JOBS_PATH=/tmp/slicer_jobs
+SLICER_CONFIG_PATH=/config
+
+# Email (Resend)
+# If RESEND_API_KEY is not set, emails will be logged to console (mock mode)
+RESEND_API_KEY=re_xxxxxxxxxxxxx
+RESEND_FROM_EMAIL=noreply@yourdomain.com
+```
+
+## API Endpoints
+
+### Health
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/health` | Health check |
+
+### Uploads (Phase 1)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST | `/uploads/analyze` | Upload and analyze STL file |
+| GET | `/uploads/:uploadId` | Get upload details |
+| GET | `/uploads/:uploadId/download` | Get signed download URL |
+
+### Printers
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/printers` | List all active printers |
+| GET | `/printers/:printerId` | Get printer details |
+
+### Pricing (Phase 2)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST | `/pricing/estimate` | Get detailed estimate (runs slicing) |
+| GET | `/pricing/quick-estimate` | Get quick estimate (no slicing) |
+
+### Orders
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST | `/orders` | Create a new order |
+| GET | `/orders/:orderId` | Get order status |
+
+### Admin (Organizer)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/admin/orders` | List all orders |
+| GET | `/admin/orders/stats` | Get order statistics |
+| GET | `/admin/orders/:orderId` | Get order details with downloads |
+| PATCH | `/admin/orders/:orderId/status` | Update order status |
+| GET | `/admin/printers` | List all printers |
+| POST | `/admin/printers` | Create printer |
+| PATCH | `/admin/printers/:printerId` | Update printer |
+| POST | `/admin/printers/:printerId/filaments` | Add filament to printer |
+| PATCH | `/admin/filaments/:filamentId` | Update filament pricing |
 
 ## Project Structure
 
 ```
-apps/backend/
-├── app/
-│   ├── api/           # API routes and endpoints
-│   ├── core/          # Core configuration and utilities
-│   ├── models/        # SQLAlchemy database models
-│   ├── schemas/       # Pydantic request/response schemas
-│   └── services/      # Business logic services
-├── alembic/           # Database migration scripts
-├── docker/            # Docker configurations
-├── scripts/           # Development and deployment scripts
-├── tests/             # Test suite
-├── main.py            # FastAPI application entry point
-└── requirements.txt   # Python dependencies
+src/
+├── app.module.ts          # Root module
+├── app.controller.ts      # Health check
+├── main.ts                # Bootstrap
+├── prisma/                # Prisma service
+├── common/                # Shared utilities
+├── storage/               # S3/MinIO integration
+├── uploads/               # STL upload & analysis
+├── slicing/               # PrusaSlicer integration
+├── pricing/               # Cost calculation
+├── printers/              # Printer management
+├── orders/                # Order lifecycle
+├── admin/                 # Organizer routes
+└── email/                 # Email notifications (Resend integration)
 ```
 
-## STL Analysis Service
+## Docker
 
-The backend includes a comprehensive STL analysis service that uses PrusaSlicer in Docker containers:
-
-### Features
-
-- **Asynchronous Processing**: Analysis jobs are queued using Celery for non-blocking operation
-- **STL Validation**: Comprehensive validation of STL file format and geometry
-- **PrusaSlicer Integration**: Uses PrusaSlicer CLI in Docker for accurate analysis
-- **Metrics Extraction**: Extracts filament usage, print time, volume, and complexity scores
-- **Job Tracking**: Real-time status updates and progress tracking
-
-### API Endpoints
-
-- `POST /api/analysis/` - Start STL analysis
-- `GET /api/analysis/jobs/{job_id}/status` - Get analysis status
-- `GET /api/analysis/results/{result_id}` - Get analysis results
-- `GET /api/analysis/files/{file_id}/results` - Get all results for a file
-
-### Usage Example
-
-```python
-# Start analysis
-response = requests.post("/api/analysis/", json={
-    "file_id": "your-file-id",
-    "settings": {
-        "layer_height": 0.2,
-        "infill_density": 20,
-        "supports": False,
-        "material_type": "PLA"
-    }
-})
-job_id = response.json()["job_id"]
-
-# Check status
-status = requests.get(f"/api/analysis/jobs/{job_id}/status")
-print(status.json())
-```
-
-## Configuration
-
-Key environment variables (see `.env.example` for full list):
-
-- `DATABASE_URL`: Database connection string
-- `REDIS_URL`: Redis connection for caching
-- `CELERY_BROKER_URL`: Celery broker URL (Redis)
-- `CELERY_RESULT_BACKEND`: Celery result backend URL (Redis)
-- `SUPABASE_URL`: Supabase project URL for authentication
-- `SUPABASE_KEY`: Supabase service key
-- `STORAGE_BACKEND`: File storage backend ("local" or "s3")
-- `PRUSA_SLICER_IMAGE`: Docker image for PrusaSlicer
-- `SECRET_KEY`: JWT signing key
-
-## Development
-
-### Running Tests
+Build and run with Docker Compose:
 
 ```bash
-pytest
-```
-
-### Running Locally
-
-```bash
+pip install -r requirements.txt
 uvicorn main:app --reload --port 3001
 ```
+

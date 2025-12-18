@@ -1,0 +1,252 @@
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { spawn } from 'child_process';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+
+export interface SliceOptions {
+  layerHeight: number;
+  infill: number;
+  supports: 'none' | 'auto' | 'everywhere';
+}
+
+export interface SliceResult {
+  gcodeBuffer: Buffer;
+  filamentUsedGrams: number;
+  printTimeHours: number;
+}
+
+@Injectable()
+export class SlicingService {
+  private readonly logger = new Logger(SlicingService.name);
+  private readonly jobsPath: string;
+  private readonly configPath: string;
+
+  constructor(private configService: ConfigService) {
+    this.jobsPath = this.configService.get<string>(
+      'SLICER_JOBS_PATH',
+      '/tmp/slicer_jobs',
+    );
+    this.configPath = this.configService.get<string>(
+      'SLICER_CONFIG_PATH',
+      '/config',
+    );
+
+    this.logger.log(`Slicer jobs path: ${this.jobsPath}`);
+    this.logger.log(`Slicer config path: ${this.configPath}`);
+  }
+
+  /**
+   * Slice an STL file using PrusaSlicer
+   */
+  async slice(stlBuffer: Buffer, options: SliceOptions): Promise<SliceResult> {
+    const jobId = uuidv4();
+    const jobDir = path.join(this.jobsPath, jobId);
+    const stlPath = path.join(jobDir, 'input.stl');
+    const gcodePath = path.join(jobDir, 'output.gcode');
+
+    try {
+      // Create job directory
+      await fs.mkdir(jobDir, { recursive: true });
+
+      // Write STL file
+      await fs.writeFile(stlPath, stlBuffer);
+
+      this.logger.log(`Starting slice job: ${jobId}`);
+
+      // Build slicer command
+      const args = this.buildSlicerArgs(stlPath, gcodePath, options);
+
+      // Run PrusaSlicer
+      await this.runSlicer(args, jobDir);
+
+      // Read G-code file
+      const gcodeBuffer = await fs.readFile(gcodePath);
+
+      // Parse G-code for metadata
+      const metadata = this.parseGcodeMetadata(gcodeBuffer.toString('utf-8'));
+
+      this.logger.log(
+        `Slice job complete: ${jobId} - ${metadata.filamentUsedGrams}g, ${metadata.printTimeHours}h`,
+      );
+
+      return {
+        gcodeBuffer,
+        filamentUsedGrams: metadata.filamentUsedGrams,
+        printTimeHours: metadata.printTimeHours,
+      };
+    } finally {
+      // Cleanup job directory
+      try {
+        await fs.rm(jobDir, { recursive: true, force: true });
+      } catch {
+        this.logger.warn(`Failed to cleanup job directory: ${jobDir}`);
+      }
+    }
+  }
+
+  private buildSlicerArgs(
+    stlPath: string,
+    gcodePath: string,
+    options: SliceOptions,
+  ): string[] {
+    const args = [
+      '--export-gcode',
+      '--output',
+      gcodePath,
+      '--layer-height',
+      options.layerHeight.toString(),
+      '--fill-density',
+      `${options.infill}%`,
+    ];
+
+    // Support settings - use = syntax for boolean options
+    switch (options.supports) {
+      case 'none':
+        args.push('--support-material=0');
+        break;
+      case 'auto':
+        args.push('--support-material=1');
+        args.push('--support-material-auto=1');
+        break;
+      case 'everywhere':
+        args.push('--support-material=1');
+        args.push('--support-material-auto=0');
+        break;
+    }
+
+    // Add config file
+    args.push('--load', path.join(this.configPath, 'config_pla.ini'));
+
+    // Input file
+    args.push(stlPath);
+
+    return args;
+  }
+
+  private async runSlicer(args: string[], workDir: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const cmd = 'prusa-slicer';
+
+      this.logger.debug(`Running: ${cmd} ${args.join(' ')}`);
+
+      const slicerProcess = spawn(cmd, args, {
+        cwd: workDir,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+
+      let stderr = '';
+
+      slicerProcess.stdout?.on('data', (data) => {
+        this.logger.debug(`Slicer stdout: ${data.toString()}`);
+      });
+
+      slicerProcess.stderr?.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      slicerProcess.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          this.logger.error(`Slicer failed with code ${code}: ${stderr}`);
+          reject(
+            new BadRequestException(
+              `Slicing failed: ${stderr || 'Unknown error'}`,
+            ),
+          );
+        }
+      });
+
+      slicerProcess.on('error', (err) => {
+        this.logger.error(`Slicer process error: ${err.message}`);
+        reject(new BadRequestException(`Slicing failed: ${err.message}`));
+      });
+
+      // Timeout after 5 minutes
+      setTimeout(
+        () => {
+          slicerProcess.kill();
+          reject(new BadRequestException('Slicing timed out'));
+        },
+        5 * 60 * 1000,
+      );
+    });
+  }
+
+  private parseGcodeMetadata(gcode: string): {
+    filamentUsedGrams: number;
+    printTimeHours: number;
+  } {
+    let filamentUsedMm = 0;
+    let filamentUsedGrams: number | null = null;
+    let printTimeSeconds = 0;
+
+    // Parse PrusaSlicer G-code comments
+    const lines = gcode.split('\n');
+    for (const line of lines) {
+      // Filament used in mm
+      const filamentMatch = line.match(
+        /;\s*filament used \[mm\]\s*=\s*([\d.]+)/i,
+      );
+      if (filamentMatch) {
+        filamentUsedMm = parseFloat(filamentMatch[1]);
+      }
+
+      // Filament used in grams (preferred)
+      const filamentGMatch = line.match(
+        /;\s*filament used \[g\]\s*=\s*([\d.]+)/i,
+      );
+      if (filamentGMatch) {
+        filamentUsedGrams = parseFloat(filamentGMatch[1]);
+      }
+
+      // Estimated print time - try multiple formats
+      // Format 1: "estimated printing time (normal mode) = 1h 23m 45s"
+      const timeMatch = line.match(
+        /;\s*estimated printing time.*=\s*(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s)?/i,
+      );
+      if (timeMatch) {
+        const days = parseInt(timeMatch[1] || '0');
+        const hours = parseInt(timeMatch[2] || '0');
+        const minutes = parseInt(timeMatch[3] || '0');
+        const seconds = parseInt(timeMatch[4] || '0');
+        printTimeSeconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
+      }
+
+      // Format 2: ";TIME:12345" (seconds)
+      const timeSecsMatch = line.match(/^;TIME:(\d+)/i);
+      if (timeSecsMatch && printTimeSeconds === 0) {
+        printTimeSeconds = parseInt(timeSecsMatch[1]);
+      }
+
+      // Format 3: ";Print time: 12345" (seconds)
+      const printTimeMatch = line.match(/;\s*Print time:\s*(\d+)/i);
+      if (printTimeMatch && printTimeSeconds === 0) {
+        printTimeSeconds = parseInt(printTimeMatch[1]);
+      }
+    }
+
+    // If we found filament in grams directly, use it
+    if (filamentUsedGrams !== null) {
+      return {
+        filamentUsedGrams: Math.round(filamentUsedGrams * 100) / 100,
+        printTimeHours: Math.round((printTimeSeconds / 3600) * 100) / 100,
+      };
+    }
+
+    // Convert mm to grams (1.75mm filament, PLA density 1.24 g/cm³)
+    const filamentDiameter = 1.75;
+    const plaDensity = 1.24;
+    const radiusCm = filamentDiameter / 20; // mm to cm / 2
+    const lengthCm = filamentUsedMm / 10;
+    const volumeCm3 = Math.PI * radiusCm * radiusCm * lengthCm;
+    const calculatedFilamentGrams = volumeCm3 * plaDensity;
+
+    return {
+      filamentUsedGrams: Math.round(calculatedFilamentGrams * 100) / 100,
+      printTimeHours: Math.round((printTimeSeconds / 3600) * 100) / 100,
+    };
+  }
+}
