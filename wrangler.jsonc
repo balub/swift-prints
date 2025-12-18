@@ -1,6 +1,6 @@
 {
   "//": "Cloudflare Workers configuration for deploying the frontend-hack app as an SPA",
-  "name": "swift-prints-frontend-hack",
+  "name": "swift-prints",
   "main": "worker.ts",
   "compatibility_date": "2025-12-18",
   "assets": {
