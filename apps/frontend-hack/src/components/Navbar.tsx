@@ -79,7 +79,7 @@ const Navbar = () => {
               className="text-xs bg-primary/5 text-primary border-primary/20"
             >
               <Sparkles className="w-3 h-3 mr-1" />
-              Hackathon Mode
+              Preview Mode
             </Badge>
             
             {isLoggedIn && (
