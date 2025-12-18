@@ -21,7 +21,8 @@
     "db:generate": "pnpm --filter @swift-prints/backend prisma:generate",
     "db:studio": "pnpm --filter @swift-prints/backend prisma:studio",
     "db:seed": "pnpm --filter @swift-prints/backend seed",
-    "docker:dev": "docker-compose --profile dev up -d"
+    "docker:dev": "docker-compose --profile dev up -d",
+    "docker:BE-rebuild": "docker compose --profile dev down && docker compose --profile dev build backend-dev && docker compose --profile dev up -d"
   },
   "devDependencies": {
     "pnpm": "^8.15.0",
