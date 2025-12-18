@@ -9,18 +9,50 @@ import {
   TrendingUp,
   CheckCircle,
 } from "lucide-react";
+import { formatDurationFromHours } from "@/lib/utils";
 
 interface AnalysisResult {
   filament_g: number;
   filament_mm: number;
   print_time: string;
   filename: string;
+  // Optional numeric print time in hours to support alternative display formats
+  print_time_hours?: number;
 }
 
 interface ResultsCardProps {
   result: AnalysisResult;
   onCalculateCost: () => void;
 }
+
+const formatPrintTime = (result: AnalysisResult) => {
+  let hours: number | undefined;
+
+  // Prefer explicit numeric hours if provided
+  if (
+    typeof result.print_time_hours === "number" &&
+    !Number.isNaN(result.print_time_hours)
+  ) {
+    hours = result.print_time_hours;
+  } else {
+    // Fallback: try to parse hours from the formatted string, e.g. "0.1h" or "0.1 hours"
+    const parsed = parseFloat(result.print_time);
+    if (!Number.isNaN(parsed)) {
+      const lower = result.print_time.toLowerCase();
+      if (lower.includes("h") || lower.includes("hour")) {
+        hours = parsed;
+      }
+    }
+  }
+
+  if (hours !== undefined) {
+    // Use shared formatter so < 60 mins => minutes, otherwise hours
+    return formatDurationFromHours(hours);
+  }
+
+  // Fall back to the provided formatted string for cases we can't interpret
+  return result.print_time;
+};
 
 const ResultsCard = ({ result, onCalculateCost }: ResultsCardProps) => {
   return (
@@ -94,7 +126,7 @@ const ResultsCard = ({ result, onCalculateCost }: ResultsCardProps) => {
                   Print Time
                 </p>
                 <p className="text-2xl font-bold text-orange-900">
-                  {result.print_time}
+                  {formatPrintTime(result)}
                 </p>
                 <p className="text-xs text-orange-600">Estimated duration</p>
               </div>

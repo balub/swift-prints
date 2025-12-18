@@ -17,6 +17,7 @@ import {
   UploadedFile,
 } from "@/types/api";
 import { toast } from "sonner";
+import { formatDurationFromHours } from "@/lib/utils";
 
 export interface UseFileAnalysisOptions {
   onAnalysisComplete?: (result: AnalysisResultResponse) => void;
@@ -216,7 +217,9 @@ export function useFileAnalysis(options: UseFileAnalysisOptions = {}) {
     if (!state.result) return null;
 
     return {
-      printTime: `${state.result.metrics.print_time_hours.toFixed(1)} hours`,
+      printTime: formatDurationFromHours(
+        state.result.metrics.print_time_hours
+      ),
       material: `${state.result.metrics.filament_grams.toFixed(1)}g`,
       volume: `${(state.result.metrics.volume_mm3 / 1000).toFixed(1)} cm³`,
       complexity: state.result.metrics.complexity_score.toFixed(1),

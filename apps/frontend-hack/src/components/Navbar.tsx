@@ -72,7 +72,7 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Desktop CTA */}
+          {/* Desktop CTA (no direct Admin button to keep URL but hide entry point) */}
           <div className="hidden md:flex items-center space-x-4">
             <Badge
               variant="outline"
@@ -82,20 +82,11 @@ const Navbar = () => {
               Hackathon Mode
             </Badge>
             
-            {isLoggedIn ? (
+            {isLoggedIn && (
               <>
                 <span className="text-sm text-text-muted">
                   {user?.username}
                 </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleAdminClick}
-                  className="text-text-secondary hover:text-text-primary"
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Admin
-                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -105,16 +96,6 @@ const Navbar = () => {
                   <LogOut className="w-4 h-4" />
                 </Button>
               </>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleAdminClick}
-                className="text-text-secondary hover:text-text-primary"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Admin
-              </Button>
             )}
           </div>
 
@@ -153,16 +134,7 @@ const Navbar = () => {
                   {item.name}
                 </Link>
               ))}
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  handleAdminClick();
-                }}
-                className="block w-full text-left px-3 py-3 text-base font-medium rounded-lg transition-all duration-200 text-text-secondary hover:text-text-primary hover:bg-neutral-50"
-              >
-                <Settings className="w-4 h-4 inline mr-2" />
-                {isLoggedIn ? "Admin Dashboard" : "Admin Login"}
-              </button>
+              {/* Admin button removed from mobile menu; routes remain accessible directly */}
               {isLoggedIn && (
                 <button
                   onClick={() => {

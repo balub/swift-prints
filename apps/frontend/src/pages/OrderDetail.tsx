@@ -356,7 +356,16 @@ const OrderDetail = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-text-muted">Print Time:</span>
-                  <span>{order.analysis?.print_time_hours?.toFixed(1)}h</span>
+                  <span>
+                    {order.analysis?.print_time_hours !== undefined &&
+                    order.analysis?.print_time_hours !== null
+                      ? order.analysis.print_time_hours < 1
+                        ? `${Math.round(
+                            order.analysis.print_time_hours * 60
+                          )} min`
+                        : `${order.analysis.print_time_hours.toFixed(1)}h`
+                      : "—"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-text-muted">Volume:</span>

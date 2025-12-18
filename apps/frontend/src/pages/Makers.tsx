@@ -13,6 +13,7 @@ import {
   Clock,
   Package,
 } from "lucide-react";
+import { formatDurationFromHours } from "@/lib/utils";
 import { useMakers } from "@/hooks/api/useMakers";
 import { useMakerUpdates } from "@/hooks/useMakerUpdates";
 import { MakerPublicResponse, MakerSearchFilters } from "@/types/api";
@@ -287,7 +288,12 @@ const Makers = () => {
                 </span>
                 <span>•</span>
                 <span>
-                  Time: <strong>{analysis.print_time}</strong>
+                  Time:{" "}
+                  <strong>
+                    {typeof analysis.print_time_hours === "number"
+                      ? formatDurationFromHours(analysis.print_time_hours)
+                      : analysis.print_time}
+                  </strong>
                 </span>
               </div>
               {estimate && (
@@ -394,14 +400,11 @@ const Makers = () => {
                           ${analysis ? estimatedCost.toFixed(2) : "N/A"}
                         </div>
                         <div className="text-xs text-text-muted">
-                          {analysis ? (
-                            <>
-                              Based on {analysis.filament_grams}g material +{" "}
-                              {analysis.print_time_hours}h labor
-                            </>
-                          ) : (
-                            "Upload a file to see estimate"
-                          )}
+                          {analysis
+                            ? `Based on ${analysis.filament_grams}g material + ${formatDurationFromHours(
+                                analysis.print_time_hours
+                              )} labor`
+                            : "Upload a file to see estimate"}
                         </div>
                       </div>
 

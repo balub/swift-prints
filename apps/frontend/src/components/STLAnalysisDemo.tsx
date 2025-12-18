@@ -25,6 +25,7 @@ import {
   Gauge,
   Wrench,
 } from "lucide-react";
+import { formatDurationFromHours } from "@/lib/utils";
 
 interface STLAnalysisDemoProps {
   className?: string;
@@ -82,7 +83,7 @@ export function STLAnalysisDemo({ className }: STLAnalysisDemoProps) {
       {
         icon: Clock,
         label: "Print Time",
-        value: `${result.metrics.print_time_hours.toFixed(1)} hours`,
+        value: formatDurationFromHours(result.metrics.print_time_hours),
         color: "text-blue-600",
       },
       {

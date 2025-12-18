@@ -20,6 +20,7 @@ interface AnalysisResult {
   filament_mm: number;
   print_time: string;
   filename: string;
+  print_time_hours?: number;
 }
 
 const Landing = () => {
@@ -47,6 +48,7 @@ const Landing = () => {
         filament_g: 25.4,
         filament_mm: 8500,
         print_time: "2h 34m",
+        print_time_hours: 2 + 34 / 60,
         filename: file.name,
       };
 

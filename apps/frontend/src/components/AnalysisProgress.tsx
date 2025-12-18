@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useFileAnalysis } from "@/hooks/useFileAnalysis";
 import { AnalysisResultResponse } from "@/types/api";
+import { formatDurationFromHours } from "@/lib/utils";
 import {
   FileSearch,
   CheckCircle,
@@ -101,7 +102,7 @@ export function AnalysisProgress({
 
   const formatAnalysisResult = (result: AnalysisResultResponse) => {
     return {
-      "Print Time": `${result.metrics.print_time_hours.toFixed(1)} hours`,
+      "Print Time": formatDurationFromHours(result.metrics.print_time_hours),
       Material: `${result.metrics.filament_grams.toFixed(1)}g`,
       Volume: `${(result.metrics.volume_mm3 / 1000).toFixed(1)} cm³`,
       Complexity: result.metrics.complexity_score.toFixed(1),
