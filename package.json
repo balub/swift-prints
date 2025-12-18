@@ -24,6 +24,7 @@
     "docker:dev": "docker-compose --profile dev up -d"
   },
   "devDependencies": {
-    "pnpm": "^8.15.0"
+    "pnpm": "^8.15.0",
+    "wrangler": "^4.55.0"
   }
 }
