@@ -1,0 +1,10 @@
+{
+  "//": "Cloudflare Workers configuration for deploying the frontend-kiosk app as an SPA",
+  "name": "swift-prints-frontend-kiosk",
+  "main": "worker.ts",
+  "compatibility_date": "2025-12-18",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  }
+}
