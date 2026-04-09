@@ -1,0 +1,29 @@
+FROM node:20-alpine
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy workspace manifests so pnpm can install deps
+# (source files are mounted as volumes for hot-reload)
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc ./
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/estimator/package.json ./packages/estimator/
+COPY apps/frontend-kiosk/package.json ./apps/frontend-kiosk/
+
+# Install all workspace deps into the image
+RUN pnpm install --frozen-lockfile
+
+# Copy Vite/TS config files needed at startup
+# (src/ is bind-mounted for hot-reload, but config must be in the image)
+COPY apps/frontend-kiosk/vite.config.ts \
+     apps/frontend-kiosk/tsconfig.json \
+     apps/frontend-kiosk/tsconfig.node.json \
+     apps/frontend-kiosk/tailwind.config.ts \
+     apps/frontend-kiosk/postcss.config.js \
+     apps/frontend-kiosk/index.html \
+     ./apps/frontend-kiosk/
+
+EXPOSE 8081
+
+CMD ["pnpm", "--filter", "@swift-prints/frontend-kiosk", "dev", "--host"]

@@ -143,3 +143,80 @@ Key variables:
 - `ADMIN_USERNAME` / `ADMIN_PASSWORD` - Admin login credentials
 - `JWT_SECRET` - JWT token secret key
 - `CORS_ORIGIN` - Allowed CORS origins (comma-separated)
+
+
+
+1) Benchy.stl
+slicer measurements: 
+Filament
+12.09g
+Print Time
+36mins58secs
+
+frontend measurements: 
+Filament
+6.8g
+Volume
+15.6 cm³
+Print Time
+0.5h
+
+C_clamps.stl
+slicer measurements: 
+Filament
+0.54g
+Print Time
+1mins49secs
+
+2) frontend measurements: 
+Filament
+0.2g
+Volume
+0.4 cm³
+Print Time
+0.0h
+
+3) base_slide_heavy_duty.stl
+slicer measurements: 
+Filament
+6.01g
+Print Time
+16mins28secs
+
+frontend measurements: 
+Filament
+2.6g
+Volume
+6.0 cm³
+Print Time
+0.2h
+
+4) bean_hinge.stl
+slicer measurements: 
+Filament
+9.30g
+Print Time
+22mins35secs
+
+frontend measurements: 
+Filament
+4.1g
+Volume
+9.5 cm³
+Print Time
+0.3h
+
+4) bottom_xy.stl
+slicer measurements: 
+Filament
+31.63g
+Print Time
+1hr13mins
+
+frontend measurements: 
+Filament
+17.8g
+Volume
+40.9 cm³
+Print Time
+1.2h

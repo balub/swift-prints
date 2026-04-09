@@ -1,0 +1,14 @@
+{
+  "name": "@swift-prints/estimator",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./worker": "./src/worker.ts"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.0",
+    "typescript": "^5.8.3"
+  }
+}

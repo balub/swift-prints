@@ -20,6 +20,7 @@ import {
 import { OrderStatus } from '@prisma/client';
 import { OrdersService } from '../orders/orders.service';
 import { PrintersService } from '../printers/printers.service';
+import { UploadsService } from '../uploads/uploads.service';
 import { UpdateOrderStatusDto } from '../orders/dto/update-order-status.dto';
 import { CreatePrinterDto, FilamentDto } from './dto/create-printer.dto';
 import { UpdatePrinterDto } from './dto/update-printer.dto';
@@ -32,6 +33,7 @@ export class AdminController {
   constructor(
     private ordersService: OrdersService,
     private printersService: PrintersService,
+    private uploadsService: UploadsService,
   ) {}
 
   // ==================== ORDERS ====================
@@ -89,6 +91,24 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Order statistics' })
   async getOrderStats() {
     return this.ordersService.getStatistics();
+  }
+
+  @Get('orders/:orderId/download')
+  @ApiTags('Admin - Orders')
+  @ApiOperation({
+    summary: 'Get STL download URL for an order',
+    description: 'Returns a presigned URL with a filename derived from team/participant info',
+  })
+  @ApiParam({ name: 'orderId', description: 'Order ID', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Download URL' })
+  @ApiResponse({ status: 404, description: 'Order not found' })
+  async getOrderDownload(@Param('orderId') orderId: string) {
+    const order = await this.ordersService.findById(orderId);
+    const sanitize = (s: string) => s.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const originalFilename = order.upload.filename.replace(/\.stl$/i, '');
+    const filename = `${sanitize(order.teamNumber)}_${sanitize(order.participantName)}_${sanitize(originalFilename)}.stl`;
+    const url = await this.uploadsService.getDownloadUrl(order.uploadId, filename);
+    return { url };
   }
 
   @Get('orders/:orderId')

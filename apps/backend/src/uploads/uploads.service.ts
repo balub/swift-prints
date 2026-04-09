@@ -85,9 +85,9 @@ export class UploadsService {
   /**
    * Get signed download URL for an upload's STL file
    */
-  async getDownloadUrl(uploadId: string): Promise<string> {
+  async getDownloadUrl(uploadId: string, filename?: string): Promise<string> {
     const upload = await this.getById(uploadId);
-    return this.storage.getSignedDownloadUrl(upload.stlKey);
+    return this.storage.getSignedDownloadUrl(upload.stlKey, 3600, filename);
   }
 
   /**

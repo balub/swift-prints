@@ -22,6 +22,8 @@
     "db:studio": "pnpm --filter @swift-prints/backend prisma:studio",
     "db:seed": "pnpm --filter @swift-prints/backend seed",
     "docker:dev": "docker-compose --profile dev up -d",
+    "docker:backend": "docker-compose --profile backend up -d",
+    "dev:kiosk": "pnpm --filter @swift-prints/frontend-kiosk dev",
     "docker:BE-rebuild": "docker compose --profile dev down && docker compose --profile dev build backend-dev && docker compose --profile dev up -d"
   },
   "devDependencies": {

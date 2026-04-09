@@ -22,6 +22,8 @@ services:
   backend-dev:
     profiles:
       - dev
+      - backend
+      - kiosk
     build:
       context: ./apps/backend
       dockerfile: Dockerfile
@@ -97,6 +99,29 @@ services:
       localstack-init:
         condition: service_completed_successfully
 
+  # Kiosk frontend - Vite dev server
+  frontend-kiosk:
+    profiles:
+      - kiosk
+    build:
+      context: .
+      dockerfile: apps/frontend-kiosk/Dockerfile.dev
+    container_name: swiftprints-frontend-kiosk
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3001/v1/api}
+    ports:
+      - "8081:8081"
+    volumes:
+      # Mount only source directories for hot-reload
+      # node_modules and config files are baked into the image
+      - ./apps/frontend-kiosk/src:/app/apps/frontend-kiosk/src
+      - ./apps/frontend-kiosk/public:/app/apps/frontend-kiosk/public
+      - ./packages/ui/src:/app/packages/ui/src
+      - ./packages/estimator/src:/app/packages/estimator/src
+    depends_on:
+      backend-dev:
+        condition: service_started
+
   localstack:
     image: localstack/localstack:latest
     container_name: swiftprints-localstack
@@ -109,6 +134,7 @@ services:
       DATA_DIR: /var/lib/localstack/data
       DOCKER_HOST: unix:///var/run/docker.sock
       PERSISTENCE: 1
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:-}
     volumes:
       - localstackdata:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock

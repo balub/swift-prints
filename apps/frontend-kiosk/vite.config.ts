@@ -7,6 +7,12 @@ export default defineConfig({
   server: {
     host: "::",
     port: 8081,
+    proxy: {
+      '/v1/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
   },
   plugins: [react()],
   resolve: {
@@ -18,6 +24,10 @@ export default defineConfig({
       {
         find: "@/lib/utils",
         replacement: path.resolve(__dirname, "../../packages/ui/src/lib/utils"),
+      },
+      {
+        find: "@swift-prints/estimator",
+        replacement: path.resolve(__dirname, "../../packages/estimator/src/index.ts"),
       },
       {
         find: "@",

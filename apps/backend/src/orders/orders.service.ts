@@ -46,7 +46,8 @@ export class OrdersService {
     // Calculate cost from base estimates
     const materialCost = upload.baseFilamentEstimateG * filament.pricePerGram;
     const machineTimeCost = upload.basePrintTimeHours * printer.hourlyRate;
-    const totalCost = Math.round((materialCost + machineTimeCost) * 100) / 100;
+    const supportCost = upload.needsSupports ? printer.supportSurcharge : 0;
+    const totalCost = Math.round((materialCost + machineTimeCost + supportCost) * 100) / 100;
 
     // Create order in database
     const order = await this.prisma.order.create({

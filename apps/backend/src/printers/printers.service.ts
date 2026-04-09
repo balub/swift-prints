@@ -7,9 +7,6 @@ export class PrintersService {
 
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Get all active printers with their filament pricing
-   */
   async findAll() {
     return this.prisma.printer.findMany({
       where: { isActive: true },
@@ -23,9 +20,6 @@ export class PrintersService {
     });
   }
 
-  /**
-   * Get a printer by ID with filament pricing
-   */
   async findById(printerId: string) {
     const printer = await this.prisma.printer.findUnique({
       where: { id: printerId },
@@ -43,9 +37,6 @@ export class PrintersService {
     return printer;
   }
 
-  /**
-   * Get a specific filament pricing for a printer
-   */
   async getFilamentPricing(printerId: string, filamentId: string) {
     const filament = await this.prisma.filamentPricing.findFirst({
       where: {
@@ -67,23 +58,21 @@ export class PrintersService {
     return filament;
   }
 
-  /**
-   * Validate that a printer supports a specific filament
-   */
   async validatePrinterFilament(
     printerId: string,
     filamentId: string,
   ): Promise<{
-    printer: { id: string; name: string; hourlyRate: number };
+    printer: { id: string; name: string; hourlyRate: number; supportSurcharge: number };
     filament: { id: string; name: string; pricePerGram: number };
   }> {
     const filament = await this.getFilamentPricing(printerId, filamentId);
-    
+
     return {
       printer: {
         id: filament.printer.id,
         name: filament.printer.name,
         hourlyRate: filament.printer.hourlyRate,
+        supportSurcharge: filament.printer.supportSurcharge,
       },
       filament: {
         id: filament.id,
@@ -93,12 +82,10 @@ export class PrintersService {
     };
   }
 
-  /**
-   * Create a new printer (admin only)
-   */
   async create(data: {
     name: string;
     hourlyRate: number;
+    supportSurcharge?: number;
     filaments?: Array<{
       filamentType: string;
       name: string;
@@ -109,6 +96,7 @@ export class PrintersService {
       data: {
         name: data.name,
         hourlyRate: data.hourlyRate,
+        supportSurcharge: data.supportSurcharge ?? 0,
         filaments: data.filaments
           ? {
               create: data.filaments.map((f) => ({
@@ -125,14 +113,12 @@ export class PrintersService {
     });
   }
 
-  /**
-   * Update a printer (admin only)
-   */
   async update(
     printerId: string,
     data: {
       name?: string;
       hourlyRate?: number;
+      supportSurcharge?: number;
       isActive?: boolean;
     },
   ) {
@@ -147,9 +133,6 @@ export class PrintersService {
     });
   }
 
-  /**
-   * Add filament pricing to a printer (admin only)
-   */
   async addFilament(
     printerId: string,
     data: {
@@ -170,9 +153,6 @@ export class PrintersService {
     });
   }
 
-  /**
-   * Update filament pricing (admin only)
-   */
   async updateFilament(
     filamentId: string,
     data: {
@@ -187,4 +167,3 @@ export class PrintersService {
     });
   }
 }
-

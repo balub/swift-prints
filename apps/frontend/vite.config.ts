@@ -21,6 +21,10 @@ export default defineConfig(({ mode }) => ({
         replacement: path.resolve(__dirname, "../../packages/ui/src/lib/utils"),
       },
       {
+        find: "@swift-prints/estimator",
+        replacement: path.resolve(__dirname, "../../packages/estimator/src/index.ts"),
+      },
+      {
         find: "@",
         replacement: path.resolve(__dirname, "./src"),
       },

@@ -108,6 +108,7 @@ export interface Printer {
   id: string;
   name: string;
   hourlyRate: number;
+  supportSurcharge: number;
   isActive: boolean;
   filaments: Filament[];
 }

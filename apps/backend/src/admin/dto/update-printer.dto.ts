@@ -13,9 +13,14 @@ export class UpdatePrinterDto {
   @Min(0)
   hourlyRate?: number;
 
+  @ApiPropertyOptional({ description: 'Flat surcharge added when model needs supports', minimum: 0 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  supportSurcharge?: number;
+
   @ApiPropertyOptional({ description: 'Whether the printer is active' })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 }
-

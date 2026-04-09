@@ -23,12 +23,14 @@ const Landing = () => {
   const [analysisResult, setAnalysisResult] = useState<UploadResponse | null>(
     null
   );
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const analyzeMutation = useAnalyzeUpload();
 
   const handleFileUpload = async (file: File) => {
+    setSelectedFile(file);
     analyzeMutation.mutate(file, {
       onSuccess: (data) => {
         setAnalysisResult(data);
@@ -42,8 +44,8 @@ const Landing = () => {
   };
 
   const handleContinue = () => {
-    if (analysisResult) {
-      navigate("/order", { state: { upload: analysisResult } });
+    if (analysisResult && selectedFile) {
+      navigate("/order", { state: { upload: analysisResult, file: selectedFile } });
     }
   };
 
@@ -218,6 +220,7 @@ const Landing = () => {
 
                     <Button
                       onClick={handleContinue}
+                      disabled={!analysisResult || !selectedFile}
                       className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
                       size="lg"
                     >

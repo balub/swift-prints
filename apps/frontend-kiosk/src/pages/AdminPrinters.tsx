@@ -49,7 +49,7 @@ const AdminPrinters = () => {
   const [editingFilament, setEditingFilament] = useState<{ printer: PrinterType; filament: Filament } | null>(null);
 
   // Form state
-  const [printerForm, setPrinterForm] = useState({ name: "", hourlyRate: "" });
+  const [printerForm, setPrinterForm] = useState({ name: "", hourlyRate: "", supportSurcharge: "0" });
   const [filamentForm, setFilamentForm] = useState({ filamentType: "", name: "", pricePerGram: "" });
 
   // Service hooks
@@ -65,11 +65,12 @@ const AdminPrinters = () => {
         {
           name: printerForm.name,
           hourlyRate: parseFloat(printerForm.hourlyRate),
+          supportSurcharge: parseFloat(printerForm.supportSurcharge) || 0,
         },
         {
           onSuccess: () => {
             setShowAddPrinter(false);
-            setPrinterForm({ name: "", hourlyRate: "" });
+            setPrinterForm({ name: "", hourlyRate: "", supportSurcharge: "0" });
           },
         }
       );
@@ -138,7 +139,10 @@ const AdminPrinters = () => {
                       </div>
                       <div>
                         <CardTitle className="text-lg">{printer.name}</CardTitle>
-                        <p className="text-sm text-text-muted">₹{printer.hourlyRate}/hr</p>
+                        <p className="text-sm text-text-muted">
+                          ₹{printer.hourlyRate}/hr
+                          {printer.supportSurcharge > 0 && ` · ₹${printer.supportSurcharge} support fee`}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -260,6 +264,18 @@ const AdminPrinters = () => {
                   onChange={(e) => setPrinterForm((f) => ({ ...f, hourlyRate: e.target.value }))}
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="support-surcharge">Support Surcharge (₹)</Label>
+                <Input
+                  id="support-surcharge"
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g., 50"
+                  value={printerForm.supportSurcharge}
+                  onChange={(e) => setPrinterForm((f) => ({ ...f, supportSurcharge: e.target.value }))}
+                />
+                <p className="text-xs text-text-muted">Flat fee added when a model needs support material</p>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowAddPrinter(false)}>
@@ -318,6 +334,24 @@ const AdminPrinters = () => {
                         updatePrinterMutation.mutate({
                           printerId: editingPrinter.id,
                           data: { hourlyRate: newRate },
+                        });
+                      }
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-support-surcharge">Support Surcharge (₹)</Label>
+                  <Input
+                    id="edit-support-surcharge"
+                    type="number"
+                    step="0.01"
+                    defaultValue={editingPrinter.supportSurcharge}
+                    onBlur={(e) => {
+                      const newSurcharge = parseFloat(e.target.value);
+                      if (newSurcharge !== editingPrinter.supportSurcharge) {
+                        updatePrinterMutation.mutate({
+                          printerId: editingPrinter.id,
+                          data: { supportSurcharge: newSurcharge },
                         });
                       }
                     }}

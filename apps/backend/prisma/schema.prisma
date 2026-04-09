@@ -25,14 +25,15 @@ model Upload {
 }
 
 model Printer {
-  id         String            @id @default(uuid())
-  name       String
-  hourlyRate Float
-  isActive   Boolean           @default(true)
-  filaments  FilamentPricing[]
-  orders     Order[]
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  id               String            @id @default(uuid())
+  name             String
+  hourlyRate       Float
+  supportSurcharge Float             @default(0)
+  isActive         Boolean           @default(true)
+  filaments        FilamentPricing[]
+  orders           Order[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   @@index([isActive])
 }
@@ -47,7 +48,6 @@ model FilamentPricing {
   isActive     Boolean @default(true)
   orders       Order[]
 
-  @@unique([printerId, filamentType])
   @@index([printerId])
 }
 

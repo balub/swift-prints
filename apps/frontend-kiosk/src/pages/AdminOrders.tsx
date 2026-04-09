@@ -36,8 +36,6 @@ import {
 import {
   useAdminOrders,
   useUpdateOrderStatus,
-  useAdminOrder,
-  getDownloadUrl,
   type OrderStatus,
   type AdminOrderListItem,
 } from "@/services";
@@ -78,38 +76,18 @@ const AdminOrders = () => {
   const handleDownloadFile = async (orderId: string) => {
     setDownloadingOrderId(orderId);
     try {
-      // Get full order details to access uploadId
-      const { getAdminOrder } = await import("@/services");
-      const orderDetails = await getAdminOrder(orderId);
-      
-      if (!orderDetails.uploadId) {
-        toast.error("File not available for download");
-        setDownloadingOrderId(null);
-        return;
-      }
-      
-      const downloadData = await getDownloadUrl(orderDetails.uploadId);
-      
-      if (!downloadData.url) {
-        toast.error("Download URL not available");
-        setDownloadingOrderId(null);
-        return;
-      }
-      
-      // Create a temporary link to trigger download
+      const { getAdminOrderDownloadUrl } = await import("@/services");
+      const { url } = await getAdminOrderDownloadUrl(orderId);
       const link = document.createElement("a");
-      link.href = downloadData.url;
-      link.download = orderDetails.filename || "file.stl";
-      link.target = "_blank"; // Open in new tab as fallback
+      link.href = url;
+      link.target = "_blank";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      toast.success(`Downloading ${orderDetails.filename || "file"}...`);
+      toast.success("Downloading...");
     } catch (error) {
       console.error("Download error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to download file";
-      toast.error(errorMessage);
+      toast.error(error instanceof Error ? error.message : "Failed to download file");
     } finally {
       setDownloadingOrderId(null);
     }

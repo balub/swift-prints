@@ -21,6 +21,7 @@ export interface AdminOrderFilters {
 export interface CreatePrinterRequest {
   name: string;
   hourlyRate: number;
+  supportSurcharge?: number;
   filaments?: CreateFilamentRequest[];
 }
 
@@ -33,6 +34,7 @@ export interface CreateFilamentRequest {
 export interface UpdatePrinterRequest {
   name?: string;
   hourlyRate?: number;
+  supportSurcharge?: number;
   isActive?: boolean;
 }
 
@@ -100,6 +102,10 @@ export async function getOrderStats(): Promise<OrderStats> {
 
 export async function getAdminOrder(orderId: string): Promise<AdminOrderResponse> {
   return apiRequest<AdminOrderResponse>(`/admin/orders/${orderId}`);
+}
+
+export async function getAdminOrderDownloadUrl(orderId: string): Promise<{ url: string }> {
+  return apiRequest<{ url: string }>(`/admin/orders/${orderId}/download`);
 }
 
 export async function updateOrderStatus(

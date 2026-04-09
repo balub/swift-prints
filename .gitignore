@@ -106,3 +106,5 @@ SYSTEM_OVERVIEW.md
 # Kiro configuration and specs
 .kiro/
 .cursor/
+# Git worktrees
+.worktrees/

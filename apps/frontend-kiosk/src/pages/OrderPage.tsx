@@ -33,11 +33,11 @@ import {
 import {
   useCreateOrder,
   usePrinters,
-  useEstimate,
   getDownloadUrl,
   type UploadResponse,
   type CreateOrderResponse,
 } from "@/services";
+import { useEstimator } from "@/hooks/useEstimator";
 import { STLViewer } from "@/components/STLViewer";
 
 // Validation schema
@@ -78,6 +78,7 @@ const OrderPage = () => {
   const [stlUrl, setStlUrl] = useState<string | null>(null);
 
   const upload = location.state?.upload as UploadResponse | undefined;
+  const file = location.state?.file as File | undefined;
 
   // Get download URL for STL preview
   useEffect(() => {
@@ -90,7 +91,7 @@ const OrderPage = () => {
 
   // Fetch printers
   const { data: printers, isLoading: loadingPrinters } = usePrinters();
-  const estimateMutation = useEstimate();
+  const { estimate, result: estimateResult, isLoading: isEstimating } = useEstimator();
   const createOrderMutation = useCreateOrder();
 
   // Get selected printer and filament
@@ -117,17 +118,13 @@ const OrderPage = () => {
     }
   }, [selectedPrinter, selectedFilamentId]);
 
-  // Auto-fetch estimate when selections change
+  // Auto-run estimate when selections change
   useEffect(() => {
-    if (upload && selectedPrinterId && selectedFilamentId) {
-      estimateMutation.mutate({
-        uploadId: upload.uploadId,
-        printerId: selectedPrinterId,
-        filamentId: selectedFilamentId,
-      });
+    if (file && selectedPrinterId && selectedFilamentId) {
+      estimate(file, { layerHeight: 0.2, infill: 20, perimeterCount: 2 });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPrinterId, selectedFilamentId, upload?.uploadId]);
+  }, [selectedPrinterId, selectedFilamentId, file]);
 
   const {
     register,
@@ -143,9 +140,20 @@ const OrderPage = () => {
     },
   });
 
+  // Calculate cost locally
+  const supportFee = estimateResult?.needsSupports && selectedPrinter?.supportSurcharge
+    ? selectedPrinter.supportSurcharge
+    : 0;
+
+  const totalCost = estimateResult
+    ? (estimateResult.filamentUsedGrams * (selectedFilament?.pricePerGram ?? 0)) +
+      (estimateResult.printTimeHours * (selectedPrinter?.hourlyRate ?? 0)) +
+      supportFee
+    : null;
+
   const onSubmit = (data: OrderFormData) => {
     if (!upload || !selectedPrinterId || !selectedFilamentId) return;
-    
+
     createOrderMutation.mutate(
       {
         uploadId: upload.uploadId,
@@ -283,7 +291,7 @@ const OrderPage = () => {
     );
   }
 
-  const canSubmit = isValid && selectedPrinterId && selectedFilamentId && estimateMutation.data;
+  const canSubmit = isValid && selectedPrinterId && selectedFilamentId && estimateResult && totalCost !== null;
 
   // Order form
   return (
@@ -328,217 +336,220 @@ const OrderPage = () => {
                           {upload.boundingBox.x.toFixed(1)} × {upload.boundingBox.y.toFixed(1)} × {upload.boundingBox.z.toFixed(1)} mm
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-text-muted">Est. Filament:</span>
-                        <span className="font-medium">
-                          {upload.baseEstimate.filamentGrams.toFixed(1)}g
-                        </span>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Printer & Filament Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Printer className="w-5 h-5 mr-2 text-primary" />
-                  Select Printer & Material
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Printer Selection */}
-                <div className="space-y-2">
-                  <Label>Printer</Label>
-                  {loadingPrinters ? (
-                    <div className="flex items-center justify-center py-4">
-                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Printer className="w-5 h-5 mr-2 text-primary" />
+                      Select Printer & Material
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Printer Selection */}
+                    <div className="space-y-2">
+                      <Label>Printer</Label>
+                      {loadingPrinters ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        </div>
+                      ) : (
+                        <Select value={selectedPrinterId} onValueChange={setSelectedPrinterId}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a printer" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {printers?.map((printer) => (
+                              <SelectItem key={printer.id} value={printer.id}>
+                                {printer.name} - ₹{printer.hourlyRate}/hr
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
-                  ) : (
-                    <Select value={selectedPrinterId} onValueChange={setSelectedPrinterId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a printer" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {printers?.map((printer) => (
-                          <SelectItem key={printer.id} value={printer.id}>
-                            {printer.name} - ₹{printer.hourlyRate}/hr
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
 
-                {/* Filament Selection */}
-                {selectedPrinter && (
-                  <div className="space-y-2">
-                    <Label>Material</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {selectedPrinter.filaments.map((filament) => (
-                        <button
-                          key={filament.id}
-                          type="button"
-                          onClick={() => setSelectedFilamentId(filament.id)}
-                          className={`p-3 rounded-lg border-2 transition-all text-left ${
-                            selectedFilamentId === filament.id
-                              ? "border-primary bg-primary/5"
-                              : "border-border hover:border-primary/50"
-                          }`}
-                        >
-                          <p className="font-semibold text-sm">{filament.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            ₹{filament.pricePerGram.toFixed(2)}/g
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Cost Estimate */}
-            {estimateMutation.data && (
-              <Card className="bg-primary/5 border-primary/30">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <IndianRupee className="w-5 h-5 mr-2 text-primary" />
-                    Cost Estimate
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-text-muted">
-                        Material ({estimateMutation.data.filamentUsedGrams.toFixed(1)}g)
-                      </span>
-                      <span>₹{estimateMutation.data.costBreakdown.material.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-text-muted">
-                        Machine Time ({estimateMutation.data.printTimeHours.toFixed(1)}h)
-                      </span>
-                      <span>₹{estimateMutation.data.costBreakdown.machineTime.toFixed(2)}</span>
-                    </div>
-                    <div className="border-t pt-3">
-                      <div className="flex justify-between font-medium">
-                        <span>Total</span>
-                        <span className="text-primary text-xl font-bold">
-                          ₹{estimateMutation.data.costBreakdown.total.toFixed(2)}
-                        </span>
+                    {/* Filament Selection */}
+                    {selectedPrinter && (
+                      <div className="space-y-2">
+                        <Label>Material</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {selectedPrinter.filaments.map((filament) => (
+                            <button
+                              key={filament.id}
+                              type="button"
+                              onClick={() => setSelectedFilamentId(filament.id)}
+                              className={`p-3 rounded-lg border-2 transition-all text-left ${
+                                selectedFilamentId === filament.id
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border hover:border-primary/50"
+                              }`}
+                            >
+                              <p className="font-semibold text-sm">{filament.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                ₹{filament.pricePerGram.toFixed(2)}/g
+                              </p>
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                    )}
+                  </CardContent>
+                </Card>
 
-            {estimateMutation.isPending && (
-              <Card className="p-5 flex items-center justify-center">
-                <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
-                <span className="text-sm text-muted-foreground">Calculating price...</span>
-              </Card>
-            )}
-
-            {/* Contact Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Team Number */}
-                <div className="space-y-2">
-                  <Label htmlFor="teamNumber" className="flex items-center">
-                    <Users className="w-4 h-4 mr-2 text-muted-foreground" />
-                    Team Number <span className="text-destructive ml-1">*</span>
-                  </Label>
-                  <Input
-                    id="teamNumber"
-                    placeholder="e.g., Team-42"
-                    {...register("teamNumber")}
-                    className={errors.teamNumber ? "border-destructive" : ""}
-                  />
-                  {errors.teamNumber && (
-                    <p className="text-sm text-destructive flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {errors.teamNumber.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Participant Name */}
-                <div className="space-y-2">
-                  <Label htmlFor="participantName" className="flex items-center">
-                    <User className="w-4 h-4 mr-2 text-muted-foreground" />
-                    Your Name <span className="text-destructive ml-1">*</span>
-                  </Label>
-                  <Input
-                    id="participantName"
-                    placeholder="John Doe"
-                    {...register("participantName")}
-                    className={errors.participantName ? "border-destructive" : ""}
-                  />
-                  {errors.participantName && (
-                    <p className="text-sm text-destructive flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {errors.participantName.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="participantEmail" className="flex items-center">
-                    <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
-                    Email Address <span className="text-destructive ml-1">*</span>
-                  </Label>
-                  <Input
-                    id="participantEmail"
-                    type="email"
-                    placeholder="john@example.com"
-                    {...register("participantEmail")}
-                    className={errors.participantEmail ? "border-destructive" : ""}
-                  />
-                  {errors.participantEmail && (
-                    <p className="text-sm text-destructive flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {errors.participantEmail.message}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Submit Button */}
-            <div className="bg-neutral-50 rounded-lg p-6 text-center">
-              {createOrderMutation.isError && (
-                <div className="mb-4 p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
-                  Failed to place order. Please try again.
-                </div>
-              )}
-              <p className="text-sm text-text-muted mb-4">
-                By placing this order, you confirm the details above are correct.
-              </p>
-              <Button
-                type="submit"
-                size="lg"
-                disabled={!canSubmit || createOrderMutation.isPending}
-                className="min-w-[200px]"
-              >
-                {createOrderMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Placing Order...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Place Order
-                  </>
+                {/* Cost Estimate */}
+                {estimateResult && totalCost !== null && (
+                  <Card className="bg-primary/5 border-primary/30">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <IndianRupee className="w-5 h-5 mr-2 text-primary" />
+                        Cost Estimate
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-text-muted">
+                            Material ({estimateResult.filamentUsedGrams.toFixed(1)}g)
+                          </span>
+                          <span>₹{(estimateResult.filamentUsedGrams * (selectedFilament?.pricePerGram ?? 0)).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-text-muted">
+                            Machine Time ({estimateResult.printTimeHours.toFixed(1)}h)
+                          </span>
+                          <span>₹{(estimateResult.printTimeHours * (selectedPrinter?.hourlyRate ?? 0)).toFixed(2)}</span>
+                        </div>
+                        {estimateResult.needsSupports && supportFee > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-text-muted flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 text-amber-500" />
+                              Support Material
+                            </span>
+                            <span>₹{supportFee.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="border-t pt-3">
+                          <div className="flex justify-between font-medium">
+                            <span>Total</span>
+                            <span className="text-primary text-xl font-bold">
+                              ₹{totalCost.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
-              </Button>
-            </div>
+
+                {isEstimating && (
+                  <Card className="p-5 flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
+                    <span className="text-sm text-muted-foreground">Calculating price...</span>
+                  </Card>
+                )}
+
+                {/* Contact Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Contact Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Team Number */}
+                    <div className="space-y-2">
+                      <Label htmlFor="teamNumber" className="flex items-center">
+                        <Users className="w-4 h-4 mr-2 text-muted-foreground" />
+                        Team Number <span className="text-destructive ml-1">*</span>
+                      </Label>
+                      <Input
+                        id="teamNumber"
+                        placeholder="e.g., Team-42"
+                        {...register("teamNumber")}
+                        className={errors.teamNumber ? "border-destructive" : ""}
+                      />
+                      {errors.teamNumber && (
+                        <p className="text-sm text-destructive flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.teamNumber.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Participant Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="participantName" className="flex items-center">
+                        <User className="w-4 h-4 mr-2 text-muted-foreground" />
+                        Your Name <span className="text-destructive ml-1">*</span>
+                      </Label>
+                      <Input
+                        id="participantName"
+                        placeholder="John Doe"
+                        {...register("participantName")}
+                        className={errors.participantName ? "border-destructive" : ""}
+                      />
+                      {errors.participantName && (
+                        <p className="text-sm text-destructive flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.participantName.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Email */}
+                    <div className="space-y-2">
+                      <Label htmlFor="participantEmail" className="flex items-center">
+                        <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
+                        Email Address <span className="text-destructive ml-1">*</span>
+                      </Label>
+                      <Input
+                        id="participantEmail"
+                        type="email"
+                        placeholder="john@example.com"
+                        {...register("participantEmail")}
+                        className={errors.participantEmail ? "border-destructive" : ""}
+                      />
+                      {errors.participantEmail && (
+                        <p className="text-sm text-destructive flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.participantEmail.message}
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Submit Button */}
+                <div className="bg-neutral-50 rounded-lg p-6 text-center">
+                  {createOrderMutation.isError && (
+                    <div className="mb-4 p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
+                      Failed to place order. Please try again.
+                    </div>
+                  )}
+                  <p className="text-sm text-text-muted mb-4">
+                    By placing this order, you confirm the details above are correct.
+                  </p>
+                  <Button
+                    type="submit"
+                    size="lg"
+                    disabled={!canSubmit || createOrderMutation.isPending}
+                    className="min-w-[200px]"
+                  >
+                    {createOrderMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Placing Order...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Place Order
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </form>
           </div>
@@ -553,10 +564,10 @@ const OrderPage = () => {
             </h2>
           </div>
           <div className="flex-1 p-6">
-            <STLViewer 
-              url={stlUrl} 
-              file={null} 
-              className="w-full h-full min-h-[500px] rounded-2xl shadow-lg" 
+            <STLViewer
+              url={stlUrl}
+              file={null}
+              className="w-full h-full min-h-[500px] rounded-2xl shadow-lg"
             />
           </div>
         </div>
