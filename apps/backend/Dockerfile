@@ -45,4 +45,7 @@ RUN mkdir -p /tmp/slicer_jobs
 
 EXPOSE 3001
 
-CMD ["npm", "run", "start:prod"]
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+CMD ["/docker-entrypoint.sh"]

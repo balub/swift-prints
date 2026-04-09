@@ -1,0 +1,49 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  IMAGE_NAME: ${{ github.repository_owner }}/swift-prints-backend
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: apps/backend
+          push: true
+          tags: ghcr.io/${{ env.IMAGE_NAME }}:latest
+
+      - name: Deploy to DigitalOcean
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: root
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            docker pull ghcr.io/${{ env.IMAGE_NAME }}:latest
+            docker stop swift-prints-backend || true
+            docker rm swift-prints-backend || true
+            docker run -d \
+              --name swift-prints-backend \
+              --restart unless-stopped \
+              -p 127.0.0.1:3001:3001 \
+              --env-file /root/swift-prints.env \
+              ghcr.io/${{ env.IMAGE_NAME }}:latest
