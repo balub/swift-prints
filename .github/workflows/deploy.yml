@@ -45,5 +45,5 @@ jobs:
               --name swift-prints-backend \
               --restart unless-stopped \
               -p 127.0.0.1:3001:3001 \
-              --env-file /root/swift-prints.env \
+              --env-file /root/.env \
               ghcr.io/${{ env.IMAGE_NAME }}:latest
