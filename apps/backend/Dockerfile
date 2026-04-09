@@ -1,25 +1,36 @@
-FROM node:20-alpine
+# ---- Builder ----
+FROM node:20-alpine AS builder
 
-# Build dependencies for native modules (bcrypt)
 RUN apk add --no-cache python3 make g++ openssl
 
 WORKDIR /app
 
-# Install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy prisma schema and generate client
 COPY prisma ./prisma/
 RUN npx prisma generate
 
-# Copy source code and build
 COPY . .
 RUN npm run build
 
-EXPOSE 3001
+# Remove devDependencies before copying to production image
+RUN npm prune --production
+
+# ---- Production ----
+FROM node:20-alpine AS production
+
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY prisma ./prisma/
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
+EXPOSE 3001
 CMD ["/docker-entrypoint.sh"]
