@@ -1,7 +1,7 @@
 FROM node:20-alpine
 
 # Build dependencies for native modules (bcrypt)
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ openssl
 
 WORKDIR /app
 
