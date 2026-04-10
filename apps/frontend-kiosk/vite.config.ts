@@ -16,6 +16,7 @@ export default defineConfig({
   },
   plugins: [react()],
   resolve: {
+    dedupe: ['react', 'react-dom'],
     alias: [
       {
         find: /^@\/components\/ui\/(.*)/,

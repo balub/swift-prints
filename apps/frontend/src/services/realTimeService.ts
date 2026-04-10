@@ -44,6 +44,8 @@ export function useRealTimeService(options: RealTimeServiceOptions = {}) {
   const subscribedOrdersRef = useRef<Set<string>>(new Set());
   const subscribedPricingRef = useRef<Set<string>>(new Set());
   const subscribedAnalysisRef = useRef<Set<string>>(new Set());
+  // Stable ref for sendMessage — avoids circular dep between resubscribeAll and useWebSocket
+  const sendMessageRef = useRef<((data: any) => boolean) | null>(null);
 
   const [state, setState] = useState<RealTimeServiceState>({
     webSocketConnected: false,
@@ -69,35 +71,7 @@ export function useRealTimeService(options: RealTimeServiceOptions = {}) {
       default:
         console.log("Unknown WebSocket message type:", data.type);
     }
-  }, []);
-
-  // WebSocket connection
-  const webSocket = useWebSocket({
-    url: "/ws/realtime",
-    onMessage: handleWebSocketMessage,
-    onConnect: () => {
-      setState((prev) => ({ ...prev, webSocketConnected: true, error: null }));
-      stopPolling(); // Stop polling when WebSocket connects
-
-      // Re-subscribe to all active subscriptions
-      resubscribeAll();
-    },
-    onDisconnect: () => {
-      setState((prev) => ({ ...prev, webSocketConnected: false }));
-
-      // Start polling as fallback if enabled
-      if (enablePolling && online) {
-        startPolling();
-      }
-    },
-    onError: () => {
-      setState((prev) => ({
-        ...prev,
-        webSocketConnected: false,
-        error: "WebSocket connection failed",
-      }));
-    },
-  });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Order update handler
   const handleOrderUpdate = useCallback(
@@ -162,40 +136,6 @@ export function useRealTimeService(options: RealTimeServiceOptions = {}) {
     },
     [queryClient]
   );
-
-  // Re-subscribe to all active subscriptions
-  const resubscribeAll = useCallback(() => {
-    if (!webSocket.connected) return;
-
-    // Re-subscribe to orders
-    subscribedOrdersRef.current.forEach((orderId) => {
-      webSocket.sendMessage({
-        type: "subscribe_order",
-        data: { order_id: orderId },
-      });
-    });
-
-    // Re-subscribe to pricing
-    subscribedPricingRef.current.forEach((paramsKey) => {
-      try {
-        const params = JSON.parse(paramsKey);
-        webSocket.sendMessage({
-          type: "subscribe_pricing",
-          data: params,
-        });
-      } catch (error) {
-        console.error("Error re-subscribing to pricing:", error);
-      }
-    });
-
-    // Re-subscribe to analysis
-    subscribedAnalysisRef.current.forEach((jobId) => {
-      webSocket.sendMessage({
-        type: "subscribe_analysis",
-        data: { job_id: jobId },
-      });
-    });
-  }, [webSocket]);
 
   // Polling fallback
   const pollUpdates = useCallback(async () => {
@@ -324,6 +264,73 @@ export function useRealTimeService(options: RealTimeServiceOptions = {}) {
     }
     setState((prev) => ({ ...prev, pollingActive: false }));
   }, []);
+
+  // Re-subscribe to all active subscriptions.
+  // Uses sendMessageRef to avoid a circular dep with useWebSocket.
+  const resubscribeAll = useCallback(() => {
+    if (!sendMessageRef.current) return;
+
+    subscribedOrdersRef.current.forEach((orderId) => {
+      sendMessageRef.current!({
+        type: "subscribe_order",
+        data: { order_id: orderId },
+      });
+    });
+
+    subscribedPricingRef.current.forEach((paramsKey) => {
+      try {
+        const params = JSON.parse(paramsKey);
+        sendMessageRef.current!({
+          type: "subscribe_pricing",
+          data: params,
+        });
+      } catch (error) {
+        console.error("Error re-subscribing to pricing:", error);
+      }
+    });
+
+    subscribedAnalysisRef.current.forEach((jobId) => {
+      sendMessageRef.current!({
+        type: "subscribe_analysis",
+        data: { job_id: jobId },
+      });
+    });
+  }, []); // stable: uses only refs
+
+  // Stable callbacks prevent connect() from being recreated every render,
+  // which would cause the first useEffect in useWebSocket to re-run every render.
+  const handleConnect = useCallback(() => {
+    setState((prev) => ({ ...prev, webSocketConnected: true, error: null }));
+    stopPolling();
+    resubscribeAll();
+  }, [stopPolling, resubscribeAll]);
+
+  const handleDisconnect = useCallback(() => {
+    setState((prev) => ({ ...prev, webSocketConnected: false }));
+    if (enablePolling && online) {
+      startPolling();
+    }
+  }, [enablePolling, online, startPolling]);
+
+  const handleError = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      webSocketConnected: false,
+      error: "WebSocket connection failed",
+    }));
+  }, []);
+
+  // WebSocket connection
+  const webSocket = useWebSocket({
+    url: "/ws/realtime",
+    onMessage: handleWebSocketMessage,
+    onConnect: handleConnect,
+    onDisconnect: handleDisconnect,
+    onError: handleError,
+  });
+
+  // Keep sendMessageRef current so resubscribeAll can use it without a dep cycle
+  sendMessageRef.current = webSocket.sendMessage;
 
   // Public API methods
   const subscribeToOrder = useCallback(

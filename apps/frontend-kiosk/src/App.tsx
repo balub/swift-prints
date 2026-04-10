@@ -12,6 +12,9 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminOrders from "./pages/AdminOrders";
 import AdminPrinters from "./pages/AdminPrinters";
+import BoxBuilder from "./pages/BoxBuilder";
+import PcbStandoff from "./pages/PcbStandoff";
+import Design from "./pages/Design";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -36,6 +39,9 @@ const App = () => (
             <Route path="/order" element={<OrderPage />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/orders/:orderId" element={<OrderStatus />} />
+            <Route path="/design" element={<Design />} />
+            <Route path="/design/box" element={<BoxBuilder />} />
+            <Route path="/design/pcb-standoff" element={<PcbStandoff />} />
             
             {/* Admin login (public) */}
             <Route path="/admin/login" element={<AdminLogin />} />

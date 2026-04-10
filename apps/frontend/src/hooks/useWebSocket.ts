@@ -268,26 +268,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
     };
   }, [session?.access_token, online, connect, disconnect]);
 
-  // Handle network status changes
-  useEffect(() => {
-    if (
-      online &&
-      session?.access_token &&
-      !state.connected &&
-      !state.connecting
-    ) {
-      log("Network restored, attempting to reconnect");
-      reconnect();
-    }
-  }, [
-    online,
-    session?.access_token,
-    state.connected,
-    state.connecting,
-    reconnect,
-    log,
-  ]);
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
