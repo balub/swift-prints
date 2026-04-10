@@ -1,5 +1,5 @@
 {
-  "name": "autofab-kiosk",
+  "name": "swift-prints",
   "compatibility_date": "2026-04-10",
   "assets": {
     "directory": "./apps/frontend-kiosk/dist",
