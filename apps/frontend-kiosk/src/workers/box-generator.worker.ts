@@ -1,10 +1,12 @@
 // apps/frontend-kiosk/src/workers/box-generator.worker.ts
-import { primitives, booleans, transforms } from '@jscad/modeling'
-import { serialize } from '@jscad/stl-serializer'
+import modeling from '@jscad/modeling'
+import stlSerializer from '@jscad/stl-serializer'
 
+const { primitives, booleans, transforms } = modeling
 const { roundedCuboid, cuboid } = primitives
 const { subtract, union } = booleans
 const { translate, rotateX } = transforms
+const { serialize } = stlSerializer
 
 export interface BoxParams {
   length: number       // interior length mm
