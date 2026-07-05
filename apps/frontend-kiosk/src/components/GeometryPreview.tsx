@@ -102,6 +102,7 @@ function PreviewShape({ shape, flipY, strokeWidth }: { shape: Shape; flipY: (y: 
           fontFamily="Inter, Arial, sans-serif"
           textAnchor={anchor}
           fill={stroke}
+          transform={shape.mirrored ? `translate(${2 * shape.x},0) scale(-1,1)` : undefined}
         >
           {shape.text}
         </text>

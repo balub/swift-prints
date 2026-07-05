@@ -183,6 +183,36 @@ export interface BoxPanel {
   w: number;
   h: number;
   outline: PathShape;
+  /** Extra shapes (cutouts, engraving) in panel-local coordinates. */
+  extras?: Shape[];
+}
+
+/**
+ * Two-row flat layout of box panels: [Bottom, Front, Back] / [Left, Right, Top?].
+ * Shared by the box builder and the electronics enclosure.
+ */
+export function layoutBoxPanels(panels: BoxPanel[], spacing: number, labels: boolean): Shape[] {
+  const s = Math.max(spacing, 2);
+  const rows: BoxPanel[][] = [panels.slice(0, 3), panels.slice(3)];
+  const shapes: Shape[] = [];
+  let y = 0;
+  for (const row of rows) {
+    let x = 0;
+    let rowH = 0;
+    for (const p of row) {
+      shapes.push(translateShape(p.outline, x, y));
+      for (const extra of p.extras ?? []) {
+        shapes.push(translateShape(extra, x, y));
+      }
+      if (labels) {
+        shapes.push(translateShape(text(p.w / 2, p.h / 2 - 2, 4, p.name, "center", "ENGRAVE"), x, y));
+      }
+      x += p.w + s;
+      rowH = Math.max(rowH, p.h);
+    }
+    y += rowH + s;
+  }
+  return shapes;
 }
 
 export function generateBoxPanels(params: BoxParams): BoxPanel[] {
@@ -261,25 +291,7 @@ export function generateBox(params: BoxParams): GeneratedDesign {
   }
 
   const panels = generateBoxPanels(params);
-  const s = Math.max(params.spacing, 2);
-
-  // Flat layout: two rows — [Bottom, Front, Back] / [Left, Right, Top?]
-  const rows: BoxPanel[][] = [panels.slice(0, 3), panels.slice(3)];
-  const shapes: Shape[] = [];
-  let y = 0;
-  for (const row of rows) {
-    let x = 0;
-    let rowH = 0;
-    for (const p of row) {
-      shapes.push(translateShape(p.outline, x, y));
-      if (params.labels) {
-        shapes.push(translateShape(text(p.w / 2, p.h / 2 - 2, 4, p.name, "center", "ENGRAVE"), x, y));
-      }
-      x += p.w + s;
-      rowH = Math.max(rowH, p.h);
-    }
-    y += rowH + s;
-  }
+  const shapes = layoutBoxPanels(panels, params.spacing, params.labels);
 
   const geometry: LaserGeometry = { shapes };
   const b = boundsOfGeometry(geometry);

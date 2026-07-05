@@ -36,7 +36,7 @@ export interface CircleShape {
 
 /**
  * Engraving text. Exported as a DXF TEXT entity / SVG <text>.
- * (True text-to-path outlines are out of scope for the MVP.)
+ * (Use the name-sign block's vector text pipeline when true outlines are needed.)
  */
 export interface TextShape {
   kind: "text";
@@ -47,6 +47,8 @@ export interface TextShape {
   height: number;
   text: string;
   align: "left" | "center" | "right";
+  /** Mirrored around the vertical axis — for engraving on the BACK of clear acrylic. */
+  mirrored?: boolean;
 }
 
 export type Shape = PathShape | CircleShape | TextShape;
@@ -120,6 +122,22 @@ export function roundedRect(
       { x, y: y + h - radius },
       { x, y: y + radius, bulge: b },
     ],
+    layer,
+  );
+}
+
+/** Rectangle w × h centered on (cx, cy), rotated by angle (radians, CCW). */
+export function rotatedRect(cx: number, cy: number, w: number, h: number, angle: number, layer: LayerName = "CUT"): PathShape {
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const corners = [
+    [-w / 2, -h / 2],
+    [w / 2, -h / 2],
+    [w / 2, h / 2],
+    [-w / 2, h / 2],
+  ];
+  return path(
+    corners.map(([dx, dy]) => ({ x: cx + dx * cos - dy * sin, y: cy + dx * sin + dy * cos })),
     layer,
   );
 }

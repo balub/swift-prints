@@ -62,6 +62,7 @@ function entityToDxf(shape: Shape): string[] {
         pair(40, fmt(shape.height)),
         pair(1, shape.text),
       );
+      if (shape.mirrored) out.push(pair(71, 2)); // text generation flag: mirrored in X
       if (hAlign !== 0) {
         // With non-default alignment the second alignment point (11/21) is used.
         out.push(pair(72, hAlign), pair(11, fmt(shape.x)), pair(21, fmt(shape.y)), pair(31, 0));

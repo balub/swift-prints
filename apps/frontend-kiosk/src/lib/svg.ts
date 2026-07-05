@@ -36,8 +36,9 @@ function shapeToSvg(shape: Shape, flipY: (y: number) => number): string {
       return `<circle cx="${round(shape.cx)}" cy="${round(flipY(shape.cy))}" r="${round(shape.r)}" ${common} data-layer="${shape.layer}"/>`;
     case "text": {
       const anchor = shape.align === "left" ? "start" : shape.align === "center" ? "middle" : "end";
+      const mirror = shape.mirrored ? ` transform="translate(${round(2 * shape.x)},0) scale(-1,1)"` : "";
       // TextShape y is the baseline in CAD coords.
-      return `<text x="${round(shape.x)}" y="${round(flipY(shape.y))}" font-size="${round(shape.height * 1.35)}" font-family="Inter, Arial, sans-serif" text-anchor="${anchor}" fill="${stroke}" stroke="none" data-layer="${shape.layer}">${esc(shape.text)}</text>`;
+      return `<text x="${round(shape.x)}" y="${round(flipY(shape.y))}" font-size="${round(shape.height * 1.35)}" font-family="Inter, Arial, sans-serif" text-anchor="${anchor}" fill="${stroke}" stroke="none"${mirror} data-layer="${shape.layer}">${esc(shape.text)}</text>`;
     }
   }
 }
