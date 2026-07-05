@@ -14,12 +14,16 @@ pnpm test:kiosk          # vitest (geometry, exports, generators)
 
 ## Routes (new in this MVP)
 
-| Route                 | What it is                                                       |
-| --------------------- | ---------------------------------------------------------------- |
-| `/design`             | Gallery, now with a "Laser Cutting" section (2 functional blocks, 10 coming-soon) |
-| `/design/box-builder` | Laser-cut finger-joint box: 2D flat layout, 3D assembled preview, cut list |
-| `/design/keychain`    | Keychain/text tag: shapes, engraved text, keyring hole            |
-| `/upload`             | DXF/SVG upload flow (placeholder — no real quoting yet), also in the navbar |
+| Route                    | What it is                                                       |
+| ------------------------ | ---------------------------------------------------------------- |
+| `/design`                | Gallery, now with a "Laser Cutting" section (6 functional blocks, 6 coming-soon) |
+| `/design/box-builder`    | Laser-cut finger-joint box: 2D flat layout, 3D assembled preview, cut list |
+| `/design/keychain`       | Keychain/text tag: shapes, engraved text, keyring hole            |
+| `/design/coaster-set`    | Coaster set: circle/square/hexagon, engraved rings + monogram, grid layout |
+| `/design/front-panel`    | Instrument panel: corner mounting holes, component hole table with engraved labels |
+| `/design/drawer-divider` | Cross-lap divider grid sized to a drawer, kerf-snug slots, 3D preview |
+| `/design/qr-sign`        | Engraved QR sign (qrcode-generator lib), auto-height, caption, hanging holes |
+| `/upload`                | DXF/SVG upload flow (placeholder — no real quoting yet), also in the navbar |
 
 Existing routes (`/design/box`, `/design/pcb-standoff`, `/order`, admin) are
 untouched.
@@ -58,7 +62,22 @@ at vertical corners, sides female; bottom/top lids carry tabs, walls carry
 notches. Kerf compensation shifts each material/notch boundary by kerf/2 so
 parts land on nominal size after the beam removes material.
 
-## Manual test results (2026-07-06)
+## Manual test results — wave 2 blocks (2026-07-06)
+
+- Coaster set: quantity/shape/border/monogram all update the grid preview
+  live; hexagons get taller grid cells (across-corners > across-flats) so
+  rows never overlap.
+- Front panel: hole table add/edit/remove works; out-of-panel holes error,
+  near-touching holes warn, labels skip (with a warning) when a hole sits too
+  low for its label.
+- Drawer divider: strip counts/slot positions follow columns × rows; slots
+  are drawn (thickness − kerf) wide for a snug fit; 3D assembled grid updates.
+- QR sign: live QR preview; ezdxf-validated; module size shown in the summary
+  with a scannability warning under 0.8 mm.
+- ezdxf audit: 0 errors on all wave-2 samples (3 coaster shapes, front panel,
+  3×4 divider, QR sign with holes); renders visually checked.
+
+## Manual test results — wave 1 (2026-07-06)
 
 - Box builder: dimension/thickness/finger sliders update 2D + 3D previews and
   cut list live; closed-top adds the Top panel everywhere; warnings fire for
