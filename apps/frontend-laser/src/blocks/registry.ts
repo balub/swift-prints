@@ -1,0 +1,113 @@
+import type { DesignBlock } from "./types";
+
+/**
+ * Registry of laser-cut design blocks shown in the /design gallery.
+ * To add a new block: add an entry here, create a generator under
+ * src/blocks/<slug>/ and a page under src/pages/, then register the route.
+ */
+export const DESIGN_BLOCKS: DesignBlock[] = [
+  {
+    id: "box-builder",
+    name: "Box Builder",
+    slug: "box-builder",
+    category: "makers",
+    description: "Finger-joint box from your dimensions — open or closed top.",
+    status: "available",
+  },
+  {
+    id: "keychain",
+    name: "Keychain / Text Tag",
+    slug: "keychain",
+    category: "gifts",
+    description: "Personalized tag with engraved text and a keyring hole.",
+    status: "available",
+  },
+  {
+    id: "enclosure",
+    name: "Electronics Enclosure",
+    slug: "enclosure",
+    category: "makers",
+    description: "Project box with port cutouts and ventilation slots.",
+    status: "coming-soon",
+  },
+  {
+    id: "front-panel",
+    name: "Front Panel",
+    slug: "front-panel",
+    category: "engineering",
+    description: "Instrument panel with labeled holes for switches and jacks.",
+    status: "coming-soon",
+  },
+  {
+    id: "pcb-standoff",
+    name: "PCB Standoff Plate",
+    slug: "pcb-standoff",
+    category: "engineering",
+    description: "Mounting plate with holes at exact PCB positions.",
+    status: "coming-soon",
+  },
+  {
+    id: "phone-stand",
+    name: "Phone Stand",
+    slug: "phone-stand",
+    category: "home",
+    description: "Slot-together desk stand for your phone or tablet.",
+    status: "coming-soon",
+  },
+  {
+    id: "qr-sign",
+    name: "QR Code Sign",
+    slug: "qr-sign",
+    category: "business",
+    description: "Scannable QR sign for menus, payments and links.",
+    status: "coming-soon",
+  },
+  {
+    id: "coaster-set",
+    name: "Coaster Set",
+    slug: "coaster-set",
+    category: "gifts",
+    description: "Matching coasters with engraved patterns or initials.",
+    status: "coming-soon",
+  },
+  {
+    id: "drawer-divider",
+    name: "Drawer Divider",
+    slug: "drawer-divider",
+    category: "home",
+    description: "Custom grid organizer sized to your drawer.",
+    status: "coming-soon",
+  },
+  {
+    id: "display-stand",
+    name: "Display Stand",
+    slug: "display-stand",
+    category: "business",
+    description: "Angled riser for products, cards or retail shelves.",
+    status: "coming-soon",
+  },
+  {
+    id: "name-sign",
+    name: "Name Sign",
+    slug: "name-sign",
+    category: "gifts",
+    description: "Cut-out name in a friendly script for walls and doors.",
+    status: "coming-soon",
+  },
+  {
+    id: "edge-lit-sign",
+    name: "Edge-Lit Acrylic Sign",
+    slug: "edge-lit-sign",
+    category: "business",
+    description: "Engraved acrylic panel that glows on an LED base.",
+    status: "coming-soon",
+  },
+];
+
+export const CATEGORY_LABELS: Record<DesignBlock["category"], string> = {
+  makers: "Makers",
+  home: "Home",
+  gifts: "Gifts",
+  business: "Business",
+  engineering: "Engineering",
+};
