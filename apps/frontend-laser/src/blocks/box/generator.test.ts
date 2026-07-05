@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boundsOfShape, flattenPath, type PathShape } from "@/lib/geometry";
+import { flattenPath, type PathShape } from "@/lib/geometry";
 import { BOX_DEFAULTS, fingerCount, generateBox, generateBoxPanels, panelOutline, validateBox, type BoxParams } from "./generator";
 
 const P: BoxParams = { ...BOX_DEFAULTS, length: 120, width: 80, height: 50, thickness: 3, kerf: 0, fingerSize: 10, closedTop: false, labels: false };

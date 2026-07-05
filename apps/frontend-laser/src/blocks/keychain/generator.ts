@@ -15,7 +15,6 @@ import {
   rect,
   roundedRect,
   text,
-  type LaserGeometry,
   type PathShape,
   type Shape,
   type TextShape,
