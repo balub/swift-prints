@@ -205,8 +205,12 @@ export function flattenPath(shape: PathShape, chordTolerance = 0.1): { x: number
   return out;
 }
 
-/** Rough advance-width estimate for engraving text (per char, relative to cap height). */
-export const TEXT_WIDTH_FACTOR = 0.62;
+/**
+ * Rough advance-width estimate for engraving text (per char, relative to cap
+ * height). Deliberately conservative — DXF viewers substitute their own font
+ * for TEXT entities and most default fonts run wide.
+ */
+export const TEXT_WIDTH_FACTOR = 0.78;
 
 export function estimateTextWidth(shape: TextShape): number {
   return shape.text.length * shape.height * TEXT_WIDTH_FACTOR;
