@@ -37,7 +37,6 @@ import {
   useAdminOrders,
   useUpdateOrderStatus,
   type OrderStatus,
-  type AdminOrderListItem,
 } from "@/services";
 
 const statusConfig: Record<

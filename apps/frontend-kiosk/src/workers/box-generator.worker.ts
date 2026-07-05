@@ -81,7 +81,9 @@ self.onmessage = (e: MessageEvent<BoxParams & { __id?: number }>) => {
       serialize({ binary: true }, bodyForPrint, lidForPrint) as ArrayBuffer[]
     )
 
-    self.postMessage({ bodyBuffer, lidBuffer, combinedBuffer, __id }, [bodyBuffer, lidBuffer, combinedBuffer])
+    // Cast: TS types `self` as Window here, but this runs in a worker where
+    // postMessage accepts a transfer list.
+    ;(self as unknown as Worker).postMessage({ bodyBuffer, lidBuffer, combinedBuffer, __id }, [bodyBuffer, lidBuffer, combinedBuffer])
   } catch (err) {
     self.postMessage({ error: (err as Error).message, __id })
   }

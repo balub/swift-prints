@@ -1,27 +1,28 @@
-# Swift Cuts — Laser-Cut Design Blocks (MVP)
+# Laser-Cut Design Blocks (MVP)
 
-Laser-cutting companion to Swift Prints: users either customize a parametric
-"design block" (no CAD needed) or upload their own DXF/SVG. Same visual
-language as the Swift Prints configurator (beige surfaces, orange accent,
-Jura, slider + numeric input pairs, right-hand preview cards).
+Laser-cutting design blocks inside the customer app (`apps/frontend-kiosk`,
+deployed as autofab.app): users either customize a parametric "design block"
+(no CAD needed) or upload their own DXF/SVG. Lives alongside the existing
+3D-printing builders and uses the same visual language (beige surfaces,
+orange accent, Jura, slider + numeric input pairs, right-hand preview cards).
 
 ```bash
-pnpm dev:laser     # dev server on http://localhost:8082
-pnpm build:laser   # production build
-pnpm test:laser    # vitest (geometry, exports, generators)
+pnpm dev:frontend-hack   # kiosk dev server on http://localhost:8081
+pnpm build:frontend-kiosk
+pnpm test:kiosk          # vitest (geometry, exports, generators)
 ```
 
-## Routes
+## Routes (new in this MVP)
 
-| Route                 | What it is                                                    |
-| --------------------- | ------------------------------------------------------------- |
-| `/`                   | Landing — the two paths (design block / upload)               |
-| `/design`             | Design block gallery (2 functional blocks, 10 coming-soon)    |
-| `/design/box-builder` | Finger-joint box: 2D flat layout, 3D assembled preview, cut list |
-| `/design/keychain`    | Keychain/text tag: shapes, engraved text, keyring hole        |
-| `/upload`             | DXF/SVG upload flow (placeholder — no real quoting yet)       |
-| `/materials`          | Static material overview                                      |
-| `/orders`             | Placeholder empty state                                       |
+| Route                 | What it is                                                       |
+| --------------------- | ---------------------------------------------------------------- |
+| `/design`             | Gallery, now with a "Laser Cutting" section (2 functional blocks, 10 coming-soon) |
+| `/design/box-builder` | Laser-cut finger-joint box: 2D flat layout, 3D assembled preview, cut list |
+| `/design/keychain`    | Keychain/text tag: shapes, engraved text, keyring hole            |
+| `/upload`             | DXF/SVG upload flow (placeholder — no real quoting yet), also in the navbar |
+
+Existing routes (`/design/box`, `/design/pcb-standoff`, `/order`, admin) are
+untouched.
 
 ## Architecture — how a block works
 
@@ -46,7 +47,7 @@ Block params (page state)
 
 Generation is pure synchronous 2D math, so pages recompute in `useMemo` on
 every param change — no web worker needed (unlike the JSCAD-based 3D builders
-in frontend-kiosk).
+which keep their workers).
 
 ### Box joinery model
 
@@ -67,10 +68,12 @@ parts land on nominal size after the beam removes material.
   warn.
 - Upload: accepts .dxf/.svg (SVG gets a real preview), rejects other types
   with a message, placeholder quote CTA works.
-- DXF validation: `scripts/generate-samples.ts` + ezdxf `recover.readfile`
-  audit → 0 errors across box (open/closed/kerf) and all keychain shapes;
-  rendered output visually checked (fingers complementary, labels engraved).
-- Regression: `pnpm build:frontend` and `pnpm build:frontend-kiosk` still pass.
+- DXF validation: `apps/frontend-kiosk/scripts/generate-samples.ts` + ezdxf
+  `recover.readfile` audit → 0 errors across box (open/closed/kerf) and all
+  keychain shapes; rendered output visually checked (fingers complementary,
+  labels engraved).
+- Regression: existing 3D-print routes (`/design/box`, `/design/pcb-standoff`)
+  and builds for both frontends still pass.
 
 ## Known limitations
 

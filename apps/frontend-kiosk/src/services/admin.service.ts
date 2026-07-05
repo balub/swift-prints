@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   apiRequest,
   queryKeys,
-  type Order,
   type OrderStatus,
   type OrderStats,
   type Printer,

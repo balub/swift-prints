@@ -74,7 +74,9 @@ self.onmessage = (e: MessageEvent<PcbStandoffParams & { __id?: number }>) => {
     }
     const plate = generatePlate(params)
     const buffer = concatBuffers(serialize({ binary: true }, plate) as ArrayBuffer[])
-    self.postMessage({ buffer, __id }, [buffer])
+    // Cast: TS types `self` as Window here, but this runs in a worker where
+    // postMessage accepts a transfer list.
+    ;(self as unknown as Worker).postMessage({ buffer, __id }, [buffer])
   } catch (err) {
     self.postMessage({ error: (err as Error).message, __id })
   }

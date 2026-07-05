@@ -15,6 +15,9 @@ import AdminPrinters from "./pages/AdminPrinters";
 import BoxBuilder from "./pages/BoxBuilder";
 import PcbStandoff from "./pages/PcbStandoff";
 import Design from "./pages/Design";
+import LaserBoxBuilder from "./pages/BoxBuilderPage";
+import LaserKeychain from "./pages/KeychainPage";
+import UploadPage from "./pages/UploadPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -42,6 +45,9 @@ const App = () => (
             <Route path="/design" element={<Design />} />
             <Route path="/design/box" element={<BoxBuilder />} />
             <Route path="/design/pcb-standoff" element={<PcbStandoff />} />
+            <Route path="/design/box-builder" element={<LaserBoxBuilder />} />
+            <Route path="/design/keychain" element={<LaserKeychain />} />
+            <Route path="/upload" element={<UploadPage />} />
             
             {/* Admin login (public) */}
             <Route path="/admin/login" element={<AdminLogin />} />

@@ -5,7 +5,6 @@ import {
   API_BASE,
   apiRequest,
   queryKeys,
-  type Order,
   type OrderStatus,
 } from "./api-client";
 
@@ -87,7 +86,7 @@ export function useCreateOrder() {
 
   return useMutation({
     mutationFn: createOrder,
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate orders list
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
       // Also invalidate admin orders
@@ -104,7 +103,7 @@ export function useCancelOrder() {
 
   return useMutation({
     mutationFn: cancelOrder,
-    onSuccess: (data, orderId) => {
+    onSuccess: (_data, orderId) => {
       // Invalidate the specific order
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.detail(orderId) });
       // Invalidate orders list

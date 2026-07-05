@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, X, Box, Sparkles, Settings, LogOut } from "lucide-react";
+import { Menu, X, Box, Sparkles, LogOut } from "lucide-react";
 import { isAuthenticated, getStoredUser, useLogout } from "@/services";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const logout = useLogout();
   
   const isLoggedIn = isAuthenticated();
@@ -17,6 +16,7 @@ const Navbar = () => {
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Design", href: "/design" },
+    { name: "Upload DXF", href: "/upload" },
     { name: "My Orders", href: "/orders" },
   ];
 
@@ -24,14 +24,6 @@ const Navbar = () => {
     if (href === "/" && location.pathname === "/") return true;
     if (href !== "/" && location.pathname.startsWith(href)) return true;
     return false;
-  };
-
-  const handleAdminClick = () => {
-    if (isLoggedIn) {
-      navigate("/admin");
-    } else {
-      navigate("/admin/login");
-    }
   };
 
   return (

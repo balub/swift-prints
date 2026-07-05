@@ -32,7 +32,7 @@ export default function BoxBuilderPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold font-jura mb-2">Box Builder</h1>
+        <h1 className="text-3xl font-bold font-jura mb-2">Laser-Cut Box</h1>
         <p className="text-muted-foreground mb-6">Generate a laser-cut finger-joint box from dimensions.</p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

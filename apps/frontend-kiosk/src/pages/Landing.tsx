@@ -9,10 +9,8 @@ import {
   Users,
   Clock,
   Shield,
-  Star,
   Zap,
   CheckCircle,
-  Sparkles,
   Package,
   TrendingUp,
 } from "lucide-react";

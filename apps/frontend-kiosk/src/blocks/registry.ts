@@ -8,7 +8,7 @@ import type { DesignBlock } from "./types";
 export const DESIGN_BLOCKS: DesignBlock[] = [
   {
     id: "box-builder",
-    name: "Box Builder",
+    name: "Laser-Cut Box",
     slug: "box-builder",
     category: "makers",
     description: "Finger-joint box from your dimensions — open or closed top.",
@@ -39,11 +39,12 @@ export const DESIGN_BLOCKS: DesignBlock[] = [
     status: "coming-soon",
   },
   {
-    id: "pcb-standoff",
-    name: "PCB Standoff Plate",
-    slug: "pcb-standoff",
+    // slug intentionally distinct from the 3D-print route /design/pcb-standoff
+    id: "mounting-plate",
+    name: "Mounting Plate",
+    slug: "mounting-plate",
     category: "engineering",
-    description: "Mounting plate with holes at exact PCB positions.",
+    description: "Flat plate with holes at exact positions for PCBs and gear.",
     status: "coming-soon",
   },
   {
