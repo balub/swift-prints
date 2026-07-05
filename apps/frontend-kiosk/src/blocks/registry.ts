@@ -28,7 +28,7 @@ export const DESIGN_BLOCKS: DesignBlock[] = [
     slug: "enclosure",
     category: "makers",
     description: "Project box with port cutouts and ventilation slots.",
-    status: "coming-soon",
+    status: "available",
   },
   {
     id: "front-panel",
@@ -45,7 +45,7 @@ export const DESIGN_BLOCKS: DesignBlock[] = [
     slug: "mounting-plate",
     category: "engineering",
     description: "Flat plate with holes at exact positions for PCBs and gear.",
-    status: "coming-soon",
+    status: "available",
   },
   {
     id: "phone-stand",
@@ -53,7 +53,7 @@ export const DESIGN_BLOCKS: DesignBlock[] = [
     slug: "phone-stand",
     category: "home",
     description: "Slot-together desk stand for your phone or tablet.",
-    status: "coming-soon",
+    status: "available",
   },
   {
     id: "qr-sign",
@@ -85,7 +85,7 @@ export const DESIGN_BLOCKS: DesignBlock[] = [
     slug: "display-stand",
     category: "business",
     description: "Angled riser for products, cards or retail shelves.",
-    status: "coming-soon",
+    status: "available",
   },
   {
     id: "name-sign",
@@ -93,7 +93,7 @@ export const DESIGN_BLOCKS: DesignBlock[] = [
     slug: "name-sign",
     category: "gifts",
     description: "Cut-out name in a friendly script for walls and doors.",
-    status: "coming-soon",
+    status: "available",
   },
   {
     id: "edge-lit-sign",
@@ -101,7 +101,7 @@ export const DESIGN_BLOCKS: DesignBlock[] = [
     slug: "edge-lit-sign",
     category: "business",
     description: "Engraved acrylic panel that glows on an LED base.",
-    status: "coming-soon",
+    status: "available",
   },
 ];
 

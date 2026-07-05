@@ -121,11 +121,12 @@ export function textToPolygons(font: Font, content: string): MultiPolygon {
     const contours = pathToContours(p.commands as PathCommand[]);
     if (contours.length === 0) continue;
     // XOR the contours of one glyph: outer minus counters (even-odd fill).
-    const shape = polygonClipping.xor(...contours.map((ring): Polygon[] => [[ring]]));
+    const polys = contours.map((ring): Polygon => [ring]);
+    const shape = polygonClipping.xor(polys[0], ...polys.slice(1));
     if (shape.length > 0) glyphShapes.push(shape as MultiPolygon);
   }
   if (glyphShapes.length === 0) return [];
-  return polygonClipping.union(...glyphShapes.map((s): [MultiPolygon] => [s]).map((a) => a[0])) as MultiPolygon;
+  return polygonClipping.union(glyphShapes[0], ...glyphShapes.slice(1)) as MultiPolygon;
 }
 
 function boundsOfMulti(mp: MultiPolygon) {

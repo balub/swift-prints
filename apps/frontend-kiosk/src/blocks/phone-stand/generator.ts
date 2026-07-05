@@ -17,7 +17,7 @@
  *  (phone channel between lip and support)
  */
 
-import { path, rect, rotatedRect, translateShape, boundsOfGeometry, type LaserGeometry, type PathShape, type Shape } from "@/lib/geometry";
+import { path, rect, translateShape, boundsOfGeometry, type LaserGeometry, type PathShape, type Shape } from "@/lib/geometry";
 import type { DesignWarning, GeneratedDesign, SummaryItem } from "../types";
 
 export interface PhoneStandParams {

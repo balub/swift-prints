@@ -21,6 +21,12 @@ import CoasterSetPage from "./pages/CoasterSetPage";
 import FrontPanelPage from "./pages/FrontPanelPage";
 import DrawerDividerPage from "./pages/DrawerDividerPage";
 import QrSignPage from "./pages/QrSignPage";
+import EnclosurePage from "./pages/EnclosurePage";
+import MountingPlatePage from "./pages/MountingPlatePage";
+import PhoneStandPage from "./pages/PhoneStandPage";
+import DisplayStandPage from "./pages/DisplayStandPage";
+import NameSignPage from "./pages/NameSignPage";
+import EdgeLitPage from "./pages/EdgeLitPage";
 import UploadPage from "./pages/UploadPage";
 import NotFound from "./pages/NotFound";
 
@@ -55,6 +61,12 @@ const App = () => (
             <Route path="/design/front-panel" element={<FrontPanelPage />} />
             <Route path="/design/drawer-divider" element={<DrawerDividerPage />} />
             <Route path="/design/qr-sign" element={<QrSignPage />} />
+            <Route path="/design/enclosure" element={<EnclosurePage />} />
+            <Route path="/design/mounting-plate" element={<MountingPlatePage />} />
+            <Route path="/design/phone-stand" element={<PhoneStandPage />} />
+            <Route path="/design/display-stand" element={<DisplayStandPage />} />
+            <Route path="/design/name-sign" element={<NameSignPage />} />
+            <Route path="/design/edge-lit-sign" element={<EdgeLitPage />} />
             <Route path="/upload" element={<UploadPage />} />
             
             {/* Admin login (public) */}

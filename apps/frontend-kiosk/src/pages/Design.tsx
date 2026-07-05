@@ -39,7 +39,7 @@ const LASER_ICONS: Record<string, typeof Box> = {
   keychain: KeyRound,
   enclosure: Cpu,
   'front-panel': PanelTop,
-  'pcb-standoff': CircuitBoard,
+  'mounting-plate': CircuitBoard,
   'phone-stand': Smartphone,
   'qr-sign': QrCode,
   'coaster-set': Grid3x3,
@@ -142,12 +142,16 @@ export default function Design() {
           ))}
         </div>
 
-        <h2 className="text-base font-semibold font-jura mb-3 text-text-secondary">More laser blocks on the way</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {laserComingSoon.map((block) => (
-            <LaserBlockCard key={block.id} block={block} />
-          ))}
-        </div>
+        {laserComingSoon.length > 0 && (
+          <>
+            <h2 className="text-base font-semibold font-jura mb-3 text-text-secondary">More laser blocks on the way</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {laserComingSoon.map((block) => (
+                <LaserBlockCard key={block.id} block={block} />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
