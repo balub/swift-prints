@@ -36,7 +36,7 @@ export const DESIGN_BLOCKS: DesignBlock[] = [
     slug: "front-panel",
     category: "engineering",
     description: "Instrument panel with labeled holes for switches and jacks.",
-    status: "coming-soon",
+    status: "available",
   },
   {
     // slug intentionally distinct from the 3D-print route /design/pcb-standoff
@@ -61,7 +61,7 @@ export const DESIGN_BLOCKS: DesignBlock[] = [
     slug: "qr-sign",
     category: "business",
     description: "Scannable QR sign for menus, payments and links.",
-    status: "coming-soon",
+    status: "available",
   },
   {
     id: "coaster-set",
@@ -69,7 +69,7 @@ export const DESIGN_BLOCKS: DesignBlock[] = [
     slug: "coaster-set",
     category: "gifts",
     description: "Matching coasters with engraved patterns or initials.",
-    status: "coming-soon",
+    status: "available",
   },
   {
     id: "drawer-divider",
@@ -77,7 +77,7 @@ export const DESIGN_BLOCKS: DesignBlock[] = [
     slug: "drawer-divider",
     category: "home",
     description: "Custom grid organizer sized to your drawer.",
-    status: "coming-soon",
+    status: "available",
   },
   {
     id: "display-stand",

@@ -17,6 +17,10 @@ import PcbStandoff from "./pages/PcbStandoff";
 import Design from "./pages/Design";
 import LaserBoxBuilder from "./pages/BoxBuilderPage";
 import LaserKeychain from "./pages/KeychainPage";
+import CoasterSetPage from "./pages/CoasterSetPage";
+import FrontPanelPage from "./pages/FrontPanelPage";
+import DrawerDividerPage from "./pages/DrawerDividerPage";
+import QrSignPage from "./pages/QrSignPage";
 import UploadPage from "./pages/UploadPage";
 import NotFound from "./pages/NotFound";
 
@@ -47,6 +51,10 @@ const App = () => (
             <Route path="/design/pcb-standoff" element={<PcbStandoff />} />
             <Route path="/design/box-builder" element={<LaserBoxBuilder />} />
             <Route path="/design/keychain" element={<LaserKeychain />} />
+            <Route path="/design/coaster-set" element={<CoasterSetPage />} />
+            <Route path="/design/front-panel" element={<FrontPanelPage />} />
+            <Route path="/design/drawer-divider" element={<DrawerDividerPage />} />
+            <Route path="/design/qr-sign" element={<QrSignPage />} />
             <Route path="/upload" element={<UploadPage />} />
             
             {/* Admin login (public) */}

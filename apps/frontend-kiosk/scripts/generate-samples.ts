@@ -6,6 +6,10 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { generateBox, BOX_DEFAULTS } from "../src/blocks/box/generator";
 import { generateKeychain, KEYCHAIN_DEFAULTS, type KeychainShape } from "../src/blocks/keychain/generator";
+import { generateCoasterSet, COASTER_DEFAULTS } from "../src/blocks/coaster/generator";
+import { generateFrontPanel, FRONT_PANEL_DEFAULTS } from "../src/blocks/front-panel/generator";
+import { generateDrawerDivider, DRAWER_DIVIDER_DEFAULTS } from "../src/blocks/drawer-divider/generator";
+import { generateQrSign, QR_SIGN_DEFAULTS } from "../src/blocks/qr-sign/generator";
 import { geometryToDxf } from "../src/lib/dxf";
 import { geometryToSvg } from "../src/lib/svg";
 
@@ -24,6 +28,20 @@ for (const shape of ["rounded", "rectangle", "circle", "oval", "tag"] as Keychai
   const design = generateKeychain({ ...KEYCHAIN_DEFAULTS, shape });
   cases.push({ name: `keychain-${shape}`, geometry: design.geometry, warnings: design.warnings });
 }
+
+for (const shape of ["circle", "square", "hexagon"] as const) {
+  const design = generateCoasterSet({ ...COASTER_DEFAULTS, shape });
+  cases.push({ name: `coasters-${shape}`, geometry: design.geometry, warnings: design.warnings });
+}
+
+const frontPanel = generateFrontPanel(FRONT_PANEL_DEFAULTS);
+cases.push({ name: "front-panel", geometry: frontPanel.geometry, warnings: frontPanel.warnings });
+
+const divider = generateDrawerDivider(DRAWER_DIVIDER_DEFAULTS);
+cases.push({ name: "drawer-divider-3x4", geometry: divider.geometry, warnings: divider.warnings });
+
+const qrSign = generateQrSign({ ...QR_SIGN_DEFAULTS, hangingHoles: true });
+cases.push({ name: "qr-sign", geometry: qrSign.geometry, warnings: qrSign.warnings });
 
 for (const c of cases) {
   if (c.geometry.shapes.length === 0) {
