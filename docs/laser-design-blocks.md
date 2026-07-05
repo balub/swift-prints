@@ -16,14 +16,23 @@ pnpm test:kiosk          # vitest (geometry, exports, generators)
 
 | Route                    | What it is                                                       |
 | ------------------------ | ---------------------------------------------------------------- |
-| `/design`                | Gallery, now with a "Laser Cutting" section (6 functional blocks, 6 coming-soon) |
+| `/design`                | Gallery, now with a "Laser Cutting" section (all 12 blocks functional) |
 | `/design/box-builder`    | Laser-cut finger-joint box: 2D flat layout, 3D assembled preview, cut list |
 | `/design/keychain`       | Keychain/text tag: shapes, engraved text, keyring hole            |
 | `/design/coaster-set`    | Coaster set: circle/square/hexagon, engraved rings + monogram, grid layout |
 | `/design/front-panel`    | Instrument panel: corner mounting holes, component hole table with engraved labels |
 | `/design/drawer-divider` | Cross-lap divider grid sized to a drawer, kerf-snug slots, 3D preview |
 | `/design/qr-sign`        | Engraved QR sign (qrcode-generator lib), auto-height, caption, hanging holes |
+| `/design/enclosure`      | Closed finger-joint project box: back-panel hole table, front port cutout, vent slots (reuses the box joint engine via panel `extras`) |
+| `/design/mounting-plate` | Plate with a centered hole grid (rows/cols/pitch) plus extra holes |
+| `/design/phone-stand`    | Three-piece slot-together stand; extruded-profile 3D preview     |
+| `/design/display-stand`  | Angled riser: sloped panel tabs into rotated slots in the sides, optional lip |
+| `/design/name-sign`      | Real vector text (opentype.js + polygon-clipping union) cut as one connected piece in Pacifico script, optional base bar + holes |
+| `/design/edge-lit-sign`  | Acrylic panel with mirrored back-engraving (DXF TEXT flag 71=2) + slotted base |
 | `/upload`                | DXF/SVG upload flow (placeholder — no real quoting yet), also in the navbar |
+
+Text-outline dependencies: `opentype.js` (glyph outlines), `polygon-clipping`
+(glyph union), bundled `Pacifico-Regular.ttf` (SIL OFL, license file alongside).
 
 Existing routes (`/design/box`, `/design/pcb-standoff`, `/order`, admin) are
 untouched.
@@ -96,10 +105,11 @@ parts land on nominal size after the beam removes material.
 
 ## Known limitations
 
-- Engraved text is exported as DXF `TEXT` / SVG `<text>`, not vector
-  outlines — laser software substitutes its own font, so text width varies by
-  viewer (the width warning uses a conservative estimate). Text-to-path is
-  the planned upgrade.
+- Engraved text (keychain, coasters, labels, edge-lit) is exported as DXF
+  `TEXT` / SVG `<text>`, not vector outlines — laser software substitutes its
+  own font, so text width varies by viewer (the width warning uses a
+  conservative estimate). The name-sign block is the exception: it produces
+  true vector outlines and is the template for upgrading the others.
 - Kerf compensation adjusts joint fit only (tab/notch widths), not the whole
   contour offset.
 - Finger phase at box corners is fixed (front/back male); extreme
